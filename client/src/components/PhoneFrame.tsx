@@ -13,7 +13,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
       
       const isDesktop = window.innerWidth >= 1024;
       if (isDesktop) {
-        document.documentElement.style.setProperty('--viewport-height', '880px');
+        document.documentElement.style.setProperty('--viewport-height', '904px');
         document.documentElement.style.setProperty('--viewport-width', '402px');
         // Calculate phone center position for desktop
         const phoneLeft = `calc(50vw - 201px)`; // center of screen - half of phone width
@@ -60,7 +60,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
         {/* Content container - positioned in center */}
         <div className="fixed inset-0 flex items-center justify-center z-[2] pointer-events-none">
           <div 
-            style={{ width: '402px', height: '880px' }} 
+            style={{ width: '402px', height: '904px' }} 
             className="pointer-events-auto"
           >
             {children}
