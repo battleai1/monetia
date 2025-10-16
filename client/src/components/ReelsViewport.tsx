@@ -16,42 +16,46 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   });
 
   const y = useMotionValue(0);
-  const isAnimating = useRef(false);
+  const animationRef = useRef<any>(null);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
-    if (isAnimating.current) return;
+    // Отменяем предыдущую анимацию если есть
+    if (animationRef.current) {
+      animationRef.current.stop();
+    }
     
     const threshold = 50;
     
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
-      isAnimating.current = true;
-      animate(y, -window.innerHeight, {
+      goToNext();
+      animationRef.current = animate(y, -window.innerHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          goToNext();
           y.set(0);
-          isAnimating.current = false;
+          animationRef.current = null;
         }
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
-      isAnimating.current = true;
-      animate(y, window.innerHeight, {
+      goToPrev();
+      animationRef.current = animate(y, window.innerHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          goToPrev();
           y.set(0);
-          isAnimating.current = false;
+          animationRef.current = null;
         }
       });
     } else {
-      animate(y, 0, {
+      animationRef.current = animate(y, 0, {
         type: "spring",
         stiffness: 300,
         damping: 30,
+        onComplete: () => {
+          animationRef.current = null;
+        }
       });
     }
   };
