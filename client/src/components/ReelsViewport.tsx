@@ -38,8 +38,11 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
+          // Сначала меняем индекс, затем в следующем кадре сбрасываем позицию
           goToNext();
+          requestAnimationFrame(() => {
+            y.set(0);
+          });
           animationRef.current = null;
         }
       });
@@ -50,8 +53,11 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
+          // Сначала меняем индекс, затем в следующем кадре сбрасываем позицию
           goToPrev();
+          requestAnimationFrame(() => {
+            y.set(0);
+          });
           animationRef.current = null;
         }
       });
@@ -82,8 +88,10 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
           goToNext();
+          requestAnimationFrame(() => {
+            y.set(0);
+          });
           animationRef.current = null;
         }
       });
