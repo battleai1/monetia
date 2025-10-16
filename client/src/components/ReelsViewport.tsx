@@ -31,10 +31,11 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       animationRef.current.stop();
     }
     
+    const currentY = y.get();
     const threshold = viewportHeight * 0.5; // 50% от высоты экрана
     
-    if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
-      // Свайп вверх - переход на следующее видео
+    if (currentY < -threshold && currentIndex < totalReels - 1) {
+      // Свайп вверх - переход на следующее видео (продолжаем движение вверх от текущей позиции)
       goToNext();
       animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
@@ -45,8 +46,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
           animationRef.current = null;
         }
       });
-    } else if (info.offset.y > threshold && currentIndex > 0) {
-      // Свайп вниз - переход на предыдущее видео
+    } else if (currentY > threshold && currentIndex > 0) {
+      // Свайп вниз - переход на предыдущее видео (продолжаем движение вниз от текущей позиции)
       goToPrev();
       animationRef.current = animate(y, viewportHeight, {
         type: "spring",
@@ -58,7 +59,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         }
       });
     } else {
-      // Не достигли порога - возврат обратно
+      // Не достигли порога - возврат обратно (от текущей позиции к 0)
       animationRef.current = animate(y, 0, {
         type: "spring",
         stiffness: 300,
