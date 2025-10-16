@@ -1,7 +1,7 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement, useRef } from 'react';
+import { cloneElement, isValidElement, useRef, useEffect } from 'react';
 import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ReelsViewportProps {
@@ -20,6 +20,12 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
 
+  // Устанавливаем правильную начальную позицию при монтировании
+  useEffect(() => {
+    const hasPrev = currentIndex > 0;
+    y.set(hasPrev ? -viewportHeight : 0);
+  }, [currentIndex, viewportHeight, y]);
+
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
     if (animationRef.current) {
@@ -31,30 +37,32 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео
       goToNext();
-      animationRef.current = animate(y, -viewportHeight, {
+      const targetY = prevChild ? -viewportHeight * 2 : -viewportHeight;
+      animationRef.current = animate(y, targetY, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
+          y.set(prevChild ? -viewportHeight : 0);
           animationRef.current = null;
         }
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
       // Свайп вниз - переход на предыдущее видео
       goToPrev();
-      animationRef.current = animate(y, viewportHeight, {
+      animationRef.current = animate(y, 0, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
+          y.set(-viewportHeight);
           animationRef.current = null;
         }
       });
     } else {
       // Не достигли порога - возврат обратно
-      animationRef.current = animate(y, 0, {
+      const currentY = prevChild ? -viewportHeight : 0;
+      animationRef.current = animate(y, currentY, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -75,12 +83,13 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       if (animationRef.current) {
         animationRef.current.stop();
       }
-      animationRef.current = animate(y, -viewportHeight, {
+      const targetY = prevChild ? -viewportHeight * 2 : -viewportHeight;
+      animationRef.current = animate(y, targetY, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(0);
+          y.set(-viewportHeight);
           animationRef.current = null;
         }
       });
@@ -121,24 +130,24 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         dragElastic={0.05}
         onDragEnd={handleDragEnd}
         style={{ y }}
-        className="relative w-full h-full"
+        className="relative w-full"
         data-testid="reels-viewport"
       >
         {/* Previous reel */}
         {prevChild && (
-          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
+          <div className="w-full" style={{ height: `${viewportHeight}px` }}>
             {prevWithProps}
           </div>
         )}
 
         {/* Current reel */}
-        <div className="absolute inset-0 w-full h-full">
+        <div className="w-full" style={{ height: `${viewportHeight}px` }}>
           {currentWithProps}
         </div>
 
         {/* Next reel */}
         {nextChild && (
-          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
+          <div className="w-full" style={{ height: `${viewportHeight}px` }}>
             {nextWithProps}
           </div>
         )}
