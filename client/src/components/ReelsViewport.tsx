@@ -20,7 +20,16 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
 
-  // Не нужен useEffect для сброса позиции - это делается в onComplete анимации
+  // Компенсируем смещение при смене индекса
+  useEffect(() => {
+    const currentY = y.get();
+    if (currentY <= -viewportHeight || currentY >= viewportHeight) {
+      // Сброс после рендера через микротаску
+      Promise.resolve().then(() => {
+        y.set(0);
+      });
+    }
+  }, [currentIndex, y, viewportHeight]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
@@ -32,32 +41,24 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     const threshold = viewportHeight * 0.5; // 50% от высоты экрана
     
     if (currentY < -threshold && currentIndex < totalReels - 1) {
-      // Свайп вверх - переход на следующее видео (продолжаем движение вверх от текущей позиции)
+      // Свайп вверх - переход на следующее видео
       animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          // Сначала меняем индекс, затем в следующем кадре сбрасываем позицию
           goToNext();
-          requestAnimationFrame(() => {
-            y.set(0);
-          });
           animationRef.current = null;
         }
       });
     } else if (currentY > threshold && currentIndex > 0) {
-      // Свайп вниз - переход на предыдущее видео (продолжаем движение вниз от текущей позиции)
+      // Свайп вниз - переход на предыдущее видео
       animationRef.current = animate(y, viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          // Сначала меняем индекс, затем в следующем кадре сбрасываем позицию
           goToPrev();
-          requestAnimationFrame(() => {
-            y.set(0);
-          });
           animationRef.current = null;
         }
       });
@@ -89,9 +90,6 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         damping: 30,
         onComplete: () => {
           goToNext();
-          requestAnimationFrame(() => {
-            y.set(0);
-          });
           animationRef.current = null;
         }
       });
@@ -137,19 +135,19 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       >
         {/* Previous reel */}
         {prevChild && (
-          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
+          <div key={`reel-${currentIndex - 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
             {prevWithProps}
           </div>
         )}
 
         {/* Current reel */}
-        <div className="absolute inset-0 w-full h-full">
+        <div key={`reel-${currentIndex}`} className="absolute inset-0 w-full h-full">
           {currentWithProps}
         </div>
 
         {/* Next reel */}
         {nextChild && (
-          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
+          <div key={`reel-${currentIndex + 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
             {nextWithProps}
           </div>
         )}
