@@ -142,19 +142,6 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
                   </button>
                 </div>
               ))}
-              
-              {comments.length > 2 && (
-                <button 
-                  className="flex items-center gap-2 text-sm text-zinc-500 mb-4"
-                  data-testid="button-show-hidden-comments"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <line x1="5" y1="12" x2="19" y2="12" transform="rotate(90 12 12)"></line>
-                  </svg>
-                  See hidden comments
-                </button>
-              )}
             </div>
 
             {/* Emoji Reactions */}
@@ -162,7 +149,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
               {EMOJI_REACTIONS.map((emoji, index) => (
                 <button
                   key={index}
-                  className="text-2xl flex-shrink-0 hover:scale-110 transition-transform"
+                  className="text-2xl flex-shrink-0 hover:scale-110 transition-transform emoji-modern"
                   data-testid={`emoji-reaction-${index}`}
                 >
                   {emoji}

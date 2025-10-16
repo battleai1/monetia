@@ -361,3 +361,9 @@
 .w-viewport {
   width: var(--viewport-width, 100vw);
 }
+
+.emoji-modern {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
