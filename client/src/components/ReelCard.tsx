@@ -71,7 +71,7 @@ export default function ReelCard({
       const progress = (video.currentTime / video.duration) * 100;
       onProgress?.(progress);
 
-      if (progress >= 60 && !showCTA && ctaText) {
+      if (progress >= 60 && !showCTA && ctaText && !onCTAClick) {
         setShowCTA(true);
         logCTAShown(id, ctaText);
       }
@@ -84,7 +84,19 @@ export default function ReelCard({
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [id, mode, ctaText, showCTA, hasLoggedView, onProgress]);
+  }, [id, mode, ctaText, showCTA, hasLoggedView, onProgress, onCTAClick]);
+
+  useEffect(() => {
+    if (isActive && ctaText && onCTAClick) {
+      const timer = setTimeout(() => {
+        setShowCTA(true);
+        logCTAShown(id, ctaText);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else if (!isActive) {
+      setShowCTA(false);
+    }
+  }, [isActive, ctaText, onCTAClick, id]);
 
   useEffect(() => {
     if (hook) {

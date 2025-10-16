@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
+import { cloneElement, isValidElement } from 'react';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -26,6 +27,14 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     }
   };
 
+  const currentChild = children[currentIndex];
+  const childWithProps = isValidElement(currentChild) 
+    ? cloneElement(currentChild as React.ReactElement<any>, {
+        isActive: true,
+        onProgress: (progress: number) => updateProgress(currentIndex, progress),
+      })
+    : currentChild;
+
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
       <ProgressStrips
@@ -43,7 +52,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         className="w-full h-full"
         data-testid="reels-viewport"
       >
-        {children[currentIndex]}
+        {childWithProps}
       </motion.div>
     </div>
   );

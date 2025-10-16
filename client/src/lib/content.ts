@@ -215,6 +215,7 @@ export const lessons: LessonReel[] = [
     posterUrl: "https://via.placeholder.com/400x720/320/fff?text=Lesson+6",
     captionBrief: "Подведём итоги и пригласим на основной продукт.",
     captionFull: "Что дальше: поддержка, материалы, сообщество.",
+    nextCtaText: "К финалу",
     isFinal: true,
     author: "Нейротрафик Академия",
     authorAvatar: avatar5

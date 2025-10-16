@@ -13,7 +13,7 @@ export default function SalesFlow() {
   return (
     <div className="h-screen w-full bg-black">
       <ReelsViewport totalReels={salesReels.length}>
-        {salesReels.map((reel, index) => (
+        {salesReels.map((reel) => (
           <ReelCard
             key={reel.id}
             id={reel.id}
@@ -21,7 +21,7 @@ export default function SalesFlow() {
             posterUrl={reel.posterUrl}
             hook={reel.hook}
             ctaText={reel.ctaText}
-            isActive={true}
+            isActive={false}
             mode="sales"
             onCTAClick={reel.isFinal ? handleFinalCTA : undefined}
             author={reel.author}

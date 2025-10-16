@@ -1,0 +1,116 @@
+# NeurotRaffic - Vertical Video Sales Funnel
+
+## Overview
+
+NeurotRaffic is a Telegram WebApp that delivers educational content and sales funnels through Instagram Reels-style vertical video experiences. The application features two primary flows: a sales funnel that introduces users to vertical video marketing concepts, and a training flow that provides educational lessons. The experience is optimized for mobile devices with fullscreen vertical videos (9:16 aspect ratio), swipe-based navigation, and a dark theme aesthetic inspired by Instagram Reels.
+
+## Recent Changes (October 2025)
+
+### Completed Implementation
+- ✅ Full Instagram Reels-style UI with dark theme (black-purple gradients, neon accents)
+- ✅ Vertical swipe navigation with Framer Motion gestures (drag up/down to switch reels)
+- ✅ Video playback management (auto-play active reel, pause inactive)
+- ✅ CTA timing system:
+  - Final reels (with onCTAClick): CTA appears after 2 seconds, resets on swipe
+  - Regular reels: CTA appears after 60% video progress
+- ✅ Three main flows working:
+  - Sales Flow: 9 reels introducing vertical video marketing
+  - Training Flow: 6 educational lessons
+  - Final Page: Purchase CTA with testimonials wall (20 video testimonials)
+- ✅ Expandable descriptions (click anywhere on text to expand/collapse)
+- ✅ Author blocks with avatars, names, Follow buttons
+- ✅ Floating action buttons (like, comment, share, menu) with compact spacing
+- ✅ Progress strips showing current reel position (n/N)
+- ✅ Telegram WebApp integration (haptic feedback, MainButton, deep links)
+- ✅ Analytics tracking (console-based, ready for production service integration)
+
+### Key Technical Decisions
+- ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
+- Videos managed via refs - play when isActive=true, pause when false
+- CTA state resets on reel deactivation to ensure proper timing on re-entry
+- Text descriptions limited width (pr-16) to prevent overlap with floating buttons
+- Hook overlays auto-hide after 3 seconds
+- All interactive elements have data-testid attributes for testing
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+**Framework & Build System**
+- React 18 with TypeScript for type safety and modern component patterns
+- Vite as the build tool for fast development and optimized production builds
+- Wouter for lightweight client-side routing (sales flow, training flow, final page)
+
+**UI Component System**
+- Radix UI primitives for accessible, unstyled components (dialogs, popovers, tooltips, etc.)
+- shadcn/ui component library configured with "new-york" style variant
+- Tailwind CSS for utility-first styling with custom dark theme configuration
+- Framer Motion for smooth animations and gesture-based interactions
+
+**State Management**
+- Zustand for global app state (mute toggle, current flow tracking)
+- TanStack Query (React Query) for server state management and data fetching
+- React Hook Form with Zod resolvers for form validation (prepared but not actively used)
+
+**Design System**
+- Dark-first theme with purple-pink gradients (Instagram Reels aesthetic)
+- Custom Tailwind configuration with safe area insets for notched devices
+- Consistent spacing scale (2, 4, 8, 12, 16, 20 units)
+- Custom color system with HSL variables for light/dark mode support
+
+### Backend Architecture
+
+**Server Framework**
+- Express.js for HTTP server and API routing
+- TypeScript with ES modules for type safety
+- Custom middleware for request logging and error handling
+- Development mode includes Vite middleware for HMR
+
+**Data Layer**
+- In-memory storage implementation (MemStorage class) as default
+- Drizzle ORM configured for PostgreSQL migrations
+- Schema definition in shared directory for type sharing between client/server
+- Storage interface pattern allows swapping implementations without changing application code
+
+**Development Tools**
+- tsx for running TypeScript server code directly in development
+- esbuild for bundling server code in production
+- Separate development and production build processes
+
+### External Dependencies
+
+**Telegram Integration**
+- @twa-dev/sdk for Telegram WebApp API integration
+- Custom useTelegram hook for accessing WebApp features (haptic feedback, main button, user data)
+- Deep linking support via URL query parameters (mode=sales/training, reel=id)
+- Telegram script loaded via CDN in index.html
+
+**Database**
+- Neon Database (@neondatabase/serverless) for serverless PostgreSQL
+- Drizzle ORM for schema definition and migrations
+- connect-pg-simple for PostgreSQL session store (configured but not actively used)
+- DATABASE_URL environment variable required for database connection
+
+**Media & Content**
+- Video content served from external CDN (Google Cloud Storage for demos)
+- Static images stored in attached_assets directory
+- Placeholder services used for demo content
+
+**Development & Tooling**
+- Replit-specific plugins for development environment integration
+- PostCSS with Tailwind and Autoprefixer for CSS processing
+- TypeScript with strict mode enabled and path aliases configured
+
+**Third-Party UI Libraries**
+- cmdk for command palette functionality
+- date-fns for date manipulation
+- class-variance-authority for component variant management
+- clsx and tailwind-merge for className utilities
+
+**Analytics**
+- Custom analytics module with console logging (prepared for integration with analytics service)
+- Event tracking for reel views, CTA interactions, lesson expansions, and purchase clicks

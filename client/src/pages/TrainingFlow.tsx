@@ -23,7 +23,7 @@ export default function TrainingFlow() {
             lessonBrief={lesson.captionBrief}
             lessonFull={lesson.captionFull}
             ctaText={lesson.nextCtaText}
-            isActive={true}
+            isActive={false}
             mode="training"
             onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
             author={lesson.author}
