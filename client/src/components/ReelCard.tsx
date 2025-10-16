@@ -89,6 +89,10 @@ export default function ReelCard({
     };
 
     const handleEnded = () => {
+      if (ctaText && onCTAClick && !showCTA) {
+        setShowCTA(true);
+        logCTAShown(id, ctaText);
+      }
       onVideoEnded?.();
     };
 
@@ -101,16 +105,10 @@ export default function ReelCard({
   }, [id, mode, ctaText, showCTA, hasLoggedView, onProgress, onCTAClick, onVideoEnded]);
 
   useEffect(() => {
-    if (isActive && ctaText && onCTAClick) {
-      const timer = setTimeout(() => {
-        setShowCTA(true);
-        logCTAShown(id, ctaText);
-      }, 2000);
-      return () => clearTimeout(timer);
-    } else if (!isActive) {
+    if (!isActive) {
       setShowCTA(false);
     }
-  }, [isActive, ctaText, onCTAClick, id]);
+  }, [isActive]);
 
   useEffect(() => {
     if (hook) {
