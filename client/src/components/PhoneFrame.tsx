@@ -97,6 +97,16 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
                 height: 'calc(100vh - ((100vh - 932px) / 2) - 932px)',
               }}
             ></div>
+            
+            {/* Edge mask - hides corners that stick out during animation */}
+            <div 
+              className="absolute inset-0 rounded-[3rem] pointer-events-none"
+              style={{
+                boxShadow: '0 0 0 100px black',
+                width: '430px',
+                height: '932px',
+              }}
+            ></div>
           </div>
         </div>
       </div>
