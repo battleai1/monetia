@@ -170,7 +170,7 @@ export default function ReelCard({
       <motion.div
         className="relative w-full h-full origin-top overflow-hidden"
         animate={showComments ? {
-          scale: 0.55,
+          scale: 0.60,
           y: -180,
           borderRadius: 28,
         } : {
