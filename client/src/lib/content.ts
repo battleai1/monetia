@@ -57,7 +57,7 @@ export const salesReels: SalesReel[] = [
     hook: "Стоп. Можно иначе.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/270/fff?text=Reel+1", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar1,
     descriptionBrief: "Застряли в рутине? Есть способ выйти из круга...",
     descriptionFull: "Застряли в рутине? Есть способ выйти из круга. Вертикальные видео открывают новые возможности для тех, кто готов действовать. #вертикальноевидео #трафик",
@@ -73,7 +73,7 @@ export const salesReels: SalesReel[] = [
     hook: "Не блогеры. Обычные.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/280/fff?text=Reel+2", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar2,
     descriptionBrief: "Не нужно быть блогером, чтобы начать...",
     descriptionFull: "Не нужно быть блогером, чтобы начать. Обычные люди получают результаты с помощью простой системы создания контента.",
@@ -89,7 +89,7 @@ export const salesReels: SalesReel[] = [
     hook: "Просто следуй шагам", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/290/fff?text=Reel+3", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar3,
     descriptionBrief: "Система, которой легко следовать...",
     descriptionFull: "Система, которой легко следовать. Шаг за шагом от идеи до результата. Никакого хаоса — только чёткий план действий.",
@@ -105,7 +105,7 @@ export const salesReels: SalesReel[] = [
     hook: "Без сложных съёмок", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/300/fff?text=Reel+4", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar4,
     descriptionBrief: "ИИ делает 80% работы за вас...",
     descriptionFull: "ИИ делает 80% работы за вас. Создание роликов становится в разы быстрее. Генерация, озвучка, монтаж — всё автоматизировано.",
@@ -121,7 +121,7 @@ export const salesReels: SalesReel[] = [
     hook: "Ближе, чем кажется", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/310/fff?text=Reel+5", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar5,
     descriptionBrief: "Представьте: работаете откуда хотите...",
     descriptionFull: "Представьте: работаете откуда хотите, создаёте контент в своём ритме. Это ближе, чем кажется. Свобода начинается с первого шага.",
@@ -137,7 +137,7 @@ export const salesReels: SalesReel[] = [
     hook: "Смотри, что говорят", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/320/fff?text=Reel+6", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar1,
     descriptionBrief: "Реальные истории реальных людей...",
     descriptionFull: "Реальные истории реальных людей, которые начали с нуля. Их опыт показывает — это работает для каждого.",
@@ -153,7 +153,7 @@ export const salesReels: SalesReel[] = [
     hook: "Понятная механика", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/330/fff?text=Reel+7", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar2,
     descriptionBrief: "Заглянем под капот системы...",
     descriptionFull: "Заглянем под капот системы. Простая механика без лишних сложностей. Всё логично и понятно с первого раза.",
@@ -165,11 +165,11 @@ export const salesReels: SalesReel[] = [
   },
   { 
     id: "s8", 
-    title: "Что внутри «Нейротрафика»", 
+    title: "Что внутри «Пирамиды трафика»", 
     hook: "Шаблоны. Поддержка. Путь.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/340/fff?text=Reel+8", 
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar3,
     descriptionBrief: "Готовые шаблоны, поддержка 24/7...",
     descriptionFull: "Готовые шаблоны, поддержка 24/7, пошаговый путь к результату. Всё что нужно — уже внутри. Вам остаётся только начать.",
@@ -187,7 +187,7 @@ export const salesReels: SalesReel[] = [
     posterUrl: "https://via.placeholder.com/400x720/350/fff?text=Reel+9", 
     ctaText: "Начать бесплатное обучение", 
     isFinal: true,
-    author: "Нейротрафик",
+    author: "Пирамида трафика",
     authorAvatar: avatar4,
     descriptionBrief: "Первый шаг определяет всё...",
     descriptionFull: "Первый шаг определяет всё. Начните бесплатное обучение прямо сейчас и измените свой подход к трафику навсегда.",
@@ -208,7 +208,7 @@ export const lessons: LessonReel[] = [
     captionBrief: "Почему вертикальные видео — главный источник бесплатного трафика.",
     captionFull: "Экосистема Reels/Shorts/TikTok, роль первых 3 секунд, удержание, базовая логика публикаций.",
     nextCtaText: "Следующий урок",
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar5
   },
   {
@@ -219,7 +219,7 @@ export const lessons: LessonReel[] = [
     captionBrief: "Хуки: боль, интрига, шок-факт. Визуальные приёмы.",
     captionFull: "Готовые шаблоны, примеры формулировок и тестирование удержания.",
     nextCtaText: "Следующий урок",
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar1
   },
   {
@@ -230,7 +230,7 @@ export const lessons: LessonReel[] = [
     captionBrief: "Как собирать ролики без съёмки.",
     captionFull: "Скрипты, генерация кадров, озвучка, автоматизация публикаций. Рекомендации по весу и кодекам.",
     nextCtaText: "Следующий урок",
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar2
   },
   {
@@ -241,7 +241,7 @@ export const lessons: LessonReel[] = [
     captionBrief: "Когда постить, как подписывать, что влияет на показ.",
     captionFull: "Хэштеги, сабтайтлы, ритм монтажа, первые 24 часа.",
     nextCtaText: "Следующий урок",
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar3
   },
   {
@@ -252,7 +252,7 @@ export const lessons: LessonReel[] = [
     captionBrief: "Как масштабироваться и не выгореть.",
     captionFull: "Контент-план, пачки роликов, контроль качества и аналитика.",
     nextCtaText: "К финалу",
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar4
   },
   {
@@ -264,7 +264,7 @@ export const lessons: LessonReel[] = [
     captionFull: "Что дальше: поддержка, материалы, сообщество.",
     nextCtaText: "К финалу",
     isFinal: true,
-    author: "Нейротрафик Академия",
+    author: "Пирамида трафика Академия",
     authorAvatar: avatar5
   }
 ];
