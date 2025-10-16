@@ -3,6 +3,7 @@ import avatar2 from '@assets/generated_images/Male_testimonial_avatar_1_b9c9a16b
 import avatar3 from '@assets/generated_images/Female_testimonial_avatar_2_f752114d.png';
 import avatar4 from '@assets/generated_images/Male_testimonial_avatar_2_4efbfb1b.png';
 import avatar5 from '@assets/generated_images/Female_testimonial_avatar_3_9f361eca.png';
+import monetiaAvatar from '@assets/AVATARmain1_1760658669977.webp';
 
 export interface Comment {
   id: string;
@@ -57,8 +58,8 @@ export const salesReels: SalesReel[] = [
     hook: "Стоп. Можно иначе.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/270/fff?text=Reel+1", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar1,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Каждый день похож на вчера? Застряли в рутине? Есть способ выйти из круга",
     descriptionFull: "Каждый день похож на вчера? Застряли в рутине? Есть способ выйти из круга. Вертикальные видео открывают новые возможности для тех, кто готов действовать. #вертикальноевидео #трафик",
     comments: [
@@ -73,8 +74,8 @@ export const salesReels: SalesReel[] = [
     hook: "Не блогеры. Обычные.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/280/fff?text=Reel+2", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar2,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Обычные люди и вертикальные видео. Не нужно быть блогером, чтобы начать",
     descriptionFull: "Обычные люди и вертикальные видео. Не нужно быть блогером, чтобы начать. Обычные люди получают результаты с помощью простой системы создания контента.",
     comments: [
@@ -89,8 +90,8 @@ export const salesReels: SalesReel[] = [
     hook: "Просто следуй шагам", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/290/fff?text=Reel+3", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar3,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Поворот: система, а не хаос. Система, которой легко следовать",
     descriptionFull: "Поворот: система, а не хаос. Система, которой легко следовать. Шаг за шагом от идеи до результата. Никакого хаоса — только чёткий план действий.",
     comments: [
@@ -105,8 +106,8 @@ export const salesReels: SalesReel[] = [
     hook: "Без сложных съёмок", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/300/fff?text=Reel+4", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar4,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "ИИ ускоряет создание вертикальных видео. ИИ делает 80% работы за вас",
     descriptionFull: "ИИ ускоряет создание вертикальных видео. ИИ делает 80% работы за вас. Создание роликов становится в разы быстрее. Генерация, озвучка, монтаж — всё автоматизировано.",
     comments: [
@@ -121,8 +122,8 @@ export const salesReels: SalesReel[] = [
     hook: "Ближе, чем кажется", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/310/fff?text=Reel+5", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar5,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Жизнь после: свобода и творчество. Представьте: работаете откуда хотите",
     descriptionFull: "Жизнь после: свобода и творчество. Представьте: работаете откуда хотите, создаёте контент в своём ритме. Это ближе, чем кажется. Свобода начинается с первого шага.",
     comments: [
@@ -137,8 +138,8 @@ export const salesReels: SalesReel[] = [
     hook: "Смотри, что говорят", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/320/fff?text=Reel+6", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar1,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Голоса учеников: короткие истории. Реальные истории реальных людей",
     descriptionFull: "Голоса учеников: короткие истории. Реальные истории реальных людей, которые начали с нуля. Их опыт показывает — это работает для каждого.",
     comments: [
@@ -153,8 +154,8 @@ export const salesReels: SalesReel[] = [
     hook: "Понятная механика", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/330/fff?text=Reel+7", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar2,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Как это устроено внутри. Заглянем под капот системы",
     descriptionFull: "Как это устроено внутри. Заглянем под капот системы. Простая механика без лишних сложностей. Всё логично и понятно с первого раза.",
     comments: [
@@ -169,8 +170,8 @@ export const salesReels: SalesReel[] = [
     hook: "Шаблоны. Поддержка. Путь.", 
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", 
     posterUrl: "https://via.placeholder.com/400x720/340/fff?text=Reel+8", 
-    author: "Пирамида трафика",
-    authorAvatar: avatar3,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Что внутри «Пирамиды трафика». Готовые шаблоны, поддержка 24/7",
     descriptionFull: "Что внутри «Пирамиды трафика». Готовые шаблоны, поддержка 24/7, пошаговый путь к результату. Всё что нужно — уже внутри. Вам остаётся только начать.",
     comments: [
@@ -187,8 +188,8 @@ export const salesReels: SalesReel[] = [
     posterUrl: "https://via.placeholder.com/400x720/350/fff?text=Reel+9", 
     ctaText: "Начать свою пирамиду трафика", 
     isFinal: true,
-    author: "Пирамида трафика",
-    authorAvatar: avatar4,
+    author: "MONETIA",
+    authorAvatar: monetiaAvatar,
     descriptionBrief: "Готов начать? Первый шаг определяет всё",
     descriptionFull: "Готов начать? Первый шаг определяет всё. Начните свою пирамиду трафика прямо сейчас и измените свой подход к привлечению клиентов навсегда.",
     comments: [
@@ -208,8 +209,8 @@ export const lessons: LessonReel[] = [
     captionBrief: "Почему вертикальные видео — главный источник бесплатного трафика.",
     captionFull: "Экосистема Reels/Shorts/TikTok, роль первых 3 секунд, удержание, базовая логика публикаций.",
     nextCtaText: "Следующий урок",
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar5
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   },
   {
     id: "l2",
@@ -219,8 +220,8 @@ export const lessons: LessonReel[] = [
     captionBrief: "Хуки: боль, интрига, шок-факт. Визуальные приёмы.",
     captionFull: "Готовые шаблоны, примеры формулировок и тестирование удержания.",
     nextCtaText: "Следующий урок",
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar1
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   },
   {
     id: "l3",
@@ -230,8 +231,8 @@ export const lessons: LessonReel[] = [
     captionBrief: "Как собирать ролики без съёмки.",
     captionFull: "Скрипты, генерация кадров, озвучка, автоматизация публикаций. Рекомендации по весу и кодекам.",
     nextCtaText: "Следующий урок",
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar2
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   },
   {
     id: "l4",
@@ -241,8 +242,8 @@ export const lessons: LessonReel[] = [
     captionBrief: "Когда постить, как подписывать, что влияет на показ.",
     captionFull: "Хэштеги, сабтайтлы, ритм монтажа, первые 24 часа.",
     nextCtaText: "Следующий урок",
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar3
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   },
   {
     id: "l5",
@@ -252,8 +253,8 @@ export const lessons: LessonReel[] = [
     captionBrief: "Как масштабироваться и не выгореть.",
     captionFull: "Контент-план, пачки роликов, контроль качества и аналитика.",
     nextCtaText: "К финалу",
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar4
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   },
   {
     id: "l6",
@@ -264,8 +265,8 @@ export const lessons: LessonReel[] = [
     captionFull: "Что дальше: поддержка, материалы, сообщество.",
     nextCtaText: "К финалу",
     isFinal: true,
-    author: "Пирамида трафика Академия",
-    authorAvatar: avatar5
+    author: "MONETIA Академия",
+    authorAvatar: monetiaAvatar
   }
 ];
 
