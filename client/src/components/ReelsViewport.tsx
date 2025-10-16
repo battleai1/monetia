@@ -26,9 +26,10 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       animationRef.current.stop();
     }
     
-    const threshold = 50;
+    const threshold = viewportHeight * 0.3; // 30% от высоты экрана
     
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
+      // Свайп вверх - переход на следующее видео
       goToNext();
       animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
@@ -40,6 +41,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         }
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
+      // Свайп вниз - переход на предыдущее видео
       goToPrev();
       animationRef.current = animate(y, viewportHeight, {
         type: "spring",
@@ -51,6 +53,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         }
       });
     } else {
+      // Не достигли порога - возврат обратно
       animationRef.current = animate(y, 0, {
         type: "spring",
         stiffness: 300,
@@ -114,8 +117,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
       <motion.div
         drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.1}
+        dragConstraints={{ top: -viewportHeight, bottom: viewportHeight }}
+        dragElastic={0.05}
         onDragEnd={handleDragEnd}
         style={{ y }}
         className="relative w-full h-full"
