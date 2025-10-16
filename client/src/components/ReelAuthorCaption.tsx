@@ -32,8 +32,8 @@ export default function ReelAuthorCaption({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-10 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-12 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+      <div className="flex items-center gap-3 mb-3">
         <Avatar className="w-9 h-9 border-2 border-white/80">
           <AvatarImage src={authorAvatar} alt={author} />
           <AvatarFallback className="bg-purple-600 text-white text-xs">
@@ -61,7 +61,7 @@ export default function ReelAuthorCaption({
           className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
           data-testid={`button-follow-${reelId}`}
         >
-          Follow
+          Подписаться
         </button>
       </div>
 
