@@ -28,6 +28,8 @@ export default function TrainingFlow() {
             onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
             author={lesson.author}
             authorAvatar={lesson.authorAvatar}
+            likeCount={lesson.likeCount}
+            shareCount={lesson.shareCount}
           />
         ))}
       </ReelsViewport>

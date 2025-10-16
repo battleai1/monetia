@@ -9,12 +9,14 @@ interface FloatingActionsProps {
   onShare?: () => void;
   onMenu?: () => void;
   commentCount?: number;
+  likeCount?: number;
+  shareCount?: number;
   reelId?: string;
 }
 
-export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, reelId }: FloatingActionsProps) {
+export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, likeCount: initialLikeCount = 3214, shareCount = 2200, reelId }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(3214);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const { isMuted, toggleMute } = useAppStore();
 
@@ -73,7 +75,7 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
           data-testid="button-share"
         >
           <Send className="w-7 h-7 text-white" />
-          <span className="text-white text-xs font-medium">2.2K</span>
+          <span className="text-white text-xs font-medium">{shareCount >= 1000 ? `${(shareCount / 1000).toFixed(1)}K` : shareCount}</span>
         </button>
 
         <button

@@ -30,6 +30,8 @@ export default function SalesFlow() {
             descriptionBrief={reel.descriptionBrief}
             descriptionFull={reel.descriptionFull}
             comments={reel.comments}
+            likeCount={reel.likeCount}
+            shareCount={reel.shareCount}
           />
         ))}
       </ReelsViewport>

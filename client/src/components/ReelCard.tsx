@@ -28,6 +28,8 @@ interface ReelCardProps {
   descriptionBrief?: string;
   descriptionFull?: string;
   comments?: Comment[];
+  likeCount?: number;
+  shareCount?: number;
 }
 
 export default function ReelCard({
@@ -50,6 +52,8 @@ export default function ReelCard({
   descriptionBrief,
   descriptionFull,
   comments = [],
+  likeCount,
+  shareCount,
 }: ReelCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showHook, setShowHook] = useState(true);
@@ -230,6 +234,8 @@ export default function ReelCard({
             <FloatingActions 
               onComment={() => setShowComments(true)}
               commentCount={comments.length}
+              likeCount={likeCount}
+              shareCount={shareCount}
               reelId={id}
             />
 
