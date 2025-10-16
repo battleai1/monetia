@@ -37,10 +37,10 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
               height: '932px',
             }}
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50"></div>
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-full z-50 shadow-lg"></div>
             
             <div 
-              className="w-full h-full overflow-hidden bg-black flex items-center justify-center"
+              className="w-full h-full overflow-hidden bg-black flex justify-center"
             >
               <div style={{ width: '402px', height: '880px' }} className="overflow-hidden bg-black">
                 {children}
