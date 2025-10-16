@@ -1,37 +1,45 @@
 import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByTelegramId(telegramId: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(telegramId: number, userData: Partial<InsertUser>): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private users: Map<number, User>;
 
   constructor() {
     this.users = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getUserByTelegramId(telegramId: number): Promise<User | undefined> {
+    return this.users.get(telegramId);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const user: User = { 
+      telegramId: insertUser.telegramId,
+      username: insertUser.username ?? null,
+      firstName: insertUser.firstName ?? null,
+      lastName: insertUser.lastName ?? null,
+      createdAt: new Date()
+    };
+    this.users.set(user.telegramId, user);
     return user;
+  }
+
+  async updateUser(telegramId: number, userData: Partial<InsertUser>): Promise<User> {
+    const existingUser = this.users.get(telegramId);
+    if (!existingUser) {
+      throw new Error("User not found");
+    }
+    const updatedUser: User = { 
+      ...existingUser, 
+      ...userData 
+    };
+    this.users.set(telegramId, updatedUser);
+    return updatedUser;
   }
 }
 
