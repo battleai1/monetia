@@ -52,7 +52,12 @@ export default function ReelAuthorCaption({
           </div>
         </div>
         <button
-          onClick={() => console.log('Follow clicked')}
+          onClick={() => {
+            console.log('Follow clicked');
+            if (window.Telegram?.WebApp) {
+              window.Telegram.WebApp.openLink('https://t.me/+xxtfdN-63QNlNWFi');
+            }
+          }}
           className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
           data-testid={`button-follow-${reelId}`}
         >
