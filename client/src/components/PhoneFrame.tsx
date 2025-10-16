@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react';
+import monetiaLogo from '@assets/monetia_1760652591315.webp';
 
 interface PhoneFrameProps {
   children: ReactNode;
@@ -46,6 +47,15 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
       <div className="hidden lg:block">
         {/* Background */}
         <div className="fixed inset-0 bg-black z-[1]"></div>
+        
+        {/* Monetia Logo - centered above phone */}
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
+          <img 
+            src={monetiaLogo} 
+            alt="Monetia" 
+            className="h-12 w-auto"
+          />
+        </div>
         
         {/* Content container - positioned in center */}
         <div className="fixed inset-0 flex items-center justify-center z-[2] pointer-events-none">
