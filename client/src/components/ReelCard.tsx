@@ -165,6 +165,7 @@ export default function ReelCard({
       <FloatingActions 
         onComment={() => setShowComments(true)}
         commentCount={comments.length}
+        reelId={id}
       />
 
       <CommentsSheet

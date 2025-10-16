@@ -44,7 +44,12 @@ export default function ReelAuthorCaption({
           <span className="text-white font-semibold text-sm" data-testid={`author-${reelId}`}>
             {author}
           </span>
-          <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
+          <div className="relative">
+            <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
+            <svg className="absolute inset-0 w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none">
+              <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
         <button
           onClick={() => console.log('Follow clicked')}

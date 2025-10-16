@@ -7,9 +7,10 @@ interface FloatingActionsProps {
   onShare?: () => void;
   onMenu?: () => void;
   commentCount?: number;
+  reelId?: string;
 }
 
-export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23 }: FloatingActionsProps) {
+export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, reelId }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(3214);
 
@@ -27,6 +28,14 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
 
   const handleShare = () => {
     console.log('Share clicked');
+    if (window.Telegram?.WebApp) {
+      const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
+      const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
+      
+      window.Telegram.WebApp.openLink(
+        `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`
+      );
+    }
     onShare?.();
   };
 
