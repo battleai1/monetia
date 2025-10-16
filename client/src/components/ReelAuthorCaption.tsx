@@ -32,7 +32,7 @@ export default function ReelAuthorCaption({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-8 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-10 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
       <div className="flex items-center gap-2 mb-2">
         <Avatar className="w-9 h-9 border-2 border-white/80">
           <AvatarImage src={authorAvatar} alt={author} />
@@ -47,7 +47,7 @@ export default function ReelAuthorCaption({
           <div className="relative">
             <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
             <svg className="absolute inset-0 w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none">
-              <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
