@@ -14,9 +14,13 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
       if (isDesktop) {
         document.documentElement.style.setProperty('--viewport-height', '880px');
         document.documentElement.style.setProperty('--viewport-width', '402px');
+        // Calculate phone center position for desktop
+        const phoneLeft = `calc(50vw - 201px)`; // center of screen - half of phone width
+        document.documentElement.style.setProperty('--phone-left', phoneLeft);
       } else {
         document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
         document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+        document.documentElement.style.setProperty('--phone-left', '0px');
       }
     };
     
