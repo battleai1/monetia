@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Info, Smile } from 'lucide-react';
+import { Smile } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
 
@@ -42,6 +42,12 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
     onOpenChange?.(false);
   };
 
+  const handleDragEnd = (_event: any, info: { offset: { y: number }; velocity: { y: number } }) => {
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      handleClose();
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -58,28 +64,24 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
             transition={{ type: 'spring', damping: 35, stiffness: 400 }}
             className="fixed bottom-0 left-0 right-0 z-50 bg-[#262626] rounded-t-3xl max-h-[75vh] flex flex-col pb-safe"
             data-testid="comments-sheet"
           >
             {/* Drag Handle */}
-            <div className="flex justify-center pt-2 pb-3" onClick={handleClose}>
+            <div className="flex justify-center pt-2 pb-3 cursor-grab active:cursor-grabbing">
               <div className="w-10 h-1 bg-zinc-600 rounded-full" data-testid="drag-handle" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 pb-4">
-              <div className="w-6" /> {/* Spacer */}
+            <div className="flex items-center justify-center px-4 pb-4">
               <h3 className="text-base font-semibold text-white">
                 Comments
               </h3>
-              <button
-                onClick={handleClose}
-                className="p-1"
-                data-testid="button-info-comments"
-              >
-                <Info className="w-6 h-6 text-white" />
-              </button>
             </div>
 
             {/* Comments List */}

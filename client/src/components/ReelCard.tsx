@@ -223,36 +223,40 @@ export default function ReelCard({
           )}
         </AnimatePresence>
 
-        <FloatingActions 
-          onComment={() => setShowComments(true)}
-          commentCount={comments.length}
-          reelId={id}
-        />
+        {!showComments && (
+          <>
+            <FloatingActions 
+              onComment={() => setShowComments(true)}
+              commentCount={comments.length}
+              reelId={id}
+            />
 
-        {mode === 'training' && lessonBrief && lessonFull && (
-          <LessonCaption 
-            lessonId={id} 
-            brief={lessonBrief} 
-            full={lessonFull}
-            author={author}
-            authorAvatar={authorAvatar}
-          />
-        )}
+            {mode === 'training' && lessonBrief && lessonFull && (
+              <LessonCaption 
+                lessonId={id} 
+                brief={lessonBrief} 
+                full={lessonFull}
+                author={author}
+                authorAvatar={authorAvatar}
+              />
+            )}
 
-        {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
-          <ReelAuthorCaption
-            reelId={id}
-            author={author}
-            authorAvatar={authorAvatar}
-            title={title}
-            descriptionBrief={descriptionBrief}
-            descriptionFull={descriptionFull}
-            onExpand={() => logLessonExpand(id)}
-          />
-        )}
+            {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
+              <ReelAuthorCaption
+                reelId={id}
+                author={author}
+                authorAvatar={authorAvatar}
+                title={title}
+                descriptionBrief={descriptionBrief}
+                descriptionFull={descriptionFull}
+                onExpand={() => logLessonExpand(id)}
+              />
+            )}
 
-        {ctaText && (
-          <FinalCTA text={ctaText} onClick={handleCTAClick} visible={showCTA} />
+            {ctaText && (
+              <FinalCTA text={ctaText} onClick={handleCTAClick} visible={showCTA} />
+            )}
+          </>
         )}
       </motion.div>
 
