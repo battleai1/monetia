@@ -12,8 +12,8 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
       
       const isDesktop = window.innerWidth >= 1024;
       if (isDesktop) {
-        document.documentElement.style.setProperty('--viewport-height', '932px');
-        document.documentElement.style.setProperty('--viewport-width', '430px');
+        document.documentElement.style.setProperty('--viewport-height', '880px');
+        document.documentElement.style.setProperty('--viewport-width', '402px');
       } else {
         document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
         document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
@@ -40,13 +40,11 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50"></div>
             
             <div 
-              className="w-full h-full overflow-hidden bg-black"
-              style={{
-                width: '430px',
-                height: '932px',
-              }}
+              className="w-full h-full overflow-hidden bg-black flex items-center justify-center"
             >
-              {children}
+              <div style={{ width: '402px', height: '880px' }} className="overflow-hidden bg-black">
+                {children}
+              </div>
             </div>
           </div>
           

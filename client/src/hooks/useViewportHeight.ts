@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 export const useViewportHeight = () => {
   const [height, setHeight] = useState(() => {
     const isDesktop = window.innerWidth >= 1024;
-    return isDesktop ? 932 : window.innerHeight;
+    return isDesktop ? 880 : window.innerHeight;
   });
 
   useEffect(() => {
     const updateHeight = () => {
       const isDesktop = window.innerWidth >= 1024;
-      setHeight(isDesktop ? 932 : window.innerHeight);
+      setHeight(isDesktop ? 880 : window.innerHeight);
     };
 
     window.addEventListener('resize', updateHeight);
