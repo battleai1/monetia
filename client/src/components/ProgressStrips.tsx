@@ -23,7 +23,7 @@ export default function ProgressStrips({ total, current, progress }: ProgressStr
     <div 
       className="absolute top-0 left-0 right-0 z-50 px-4 pt-2 pb-2"
       style={{
-        paddingTop: isMobileTelegram ? '52px' : undefined,
+        paddingTop: isMobileTelegram ? '104px' : undefined,
       }}
     >
       <div className="flex gap-1 mb-2">
