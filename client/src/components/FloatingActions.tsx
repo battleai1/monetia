@@ -1,20 +1,21 @@
-import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, Volume2, VolumeX } from 'lucide-react';
 import { useState } from 'react';
 import ShareSheet from './ShareSheet';
+import { useAppStore } from '@/store/app.store';
 
 interface FloatingActionsProps {
   onLike?: () => void;
   onComment?: () => void;
   onShare?: () => void;
-  onMenu?: () => void;
   commentCount?: number;
   reelId?: string;
 }
 
-export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, reelId }: FloatingActionsProps) {
+export default function FloatingActions({ onLike, onComment, onShare, commentCount = 23, reelId }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(3214);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const { isMuted, toggleMute } = useAppStore();
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -34,9 +35,9 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
     onShare?.();
   };
 
-  const handleMenu = () => {
-    console.log('Menu clicked');
-    onMenu?.();
+  const handleMute = () => {
+    toggleMute();
+    console.log('Mute toggled:', !isMuted);
   };
 
   return (
@@ -75,12 +76,16 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
         </button>
 
         <button
-          onClick={handleMenu}
+          onClick={handleMute}
           className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
-          aria-label="More options"
-          data-testid="button-menu"
+          aria-label={isMuted ? "Unmute" : "Mute"}
+          data-testid="button-mute"
         >
-          <MoreHorizontal className="w-7 h-7 text-white" />
+          {isMuted ? (
+            <VolumeX className="w-7 h-7 text-white" />
+          ) : (
+            <Volume2 className="w-7 h-7 text-white" />
+          )}
         </button>
       </div>
 
