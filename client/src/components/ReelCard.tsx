@@ -56,6 +56,8 @@ export default function ReelCard({
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isHoldingPause, setIsHoldingPause] = useState(false);
+  const [isHoldingSpeed, setIsHoldingSpeed] = useState(false);
   const { isMuted } = useAppStore();
 
   useEffect(() => {
@@ -117,6 +119,45 @@ export default function ReelCard({
     }
   }, [hook]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isHoldingPause) {
+      video.pause();
+    } else if (isActive && !isHoldingSpeed) {
+      video.play().catch(() => {});
+    }
+  }, [isHoldingPause, isActive, isHoldingSpeed]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isHoldingSpeed) {
+      video.playbackRate = 2.0;
+    } else {
+      video.playbackRate = 1.0;
+    }
+  }, [isHoldingSpeed]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const clickRatio = x / rect.width;
+
+    if (clickRatio > 0.75) {
+      setIsHoldingSpeed(true);
+    } else {
+      setIsHoldingPause(true);
+    }
+  };
+
+  const handlePointerUp = () => {
+    setIsHoldingPause(false);
+    setIsHoldingSpeed(false);
+  };
+
   const handleCTAClick = () => {
     if (ctaText) {
       logCTAClick(id, ctaText);
@@ -135,6 +176,43 @@ export default function ReelCard({
         className="w-full h-full object-cover"
         data-testid={`reel-video-${id}`}
       />
+
+      <div 
+        className="absolute inset-0 z-10 touch-none"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        data-testid={`video-interaction-overlay-${id}`}
+      />
+
+      <AnimatePresence>
+        {isHoldingSpeed && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute top-1/2 right-8 -translate-y-1/2 z-20 bg-white/90 rounded-full px-4 py-2 pointer-events-none"
+          >
+            <span className="text-black font-bold">2x</span>
+          </motion.div>
+        )}
+        {isHoldingPause && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
+          >
+            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+              <div className="flex gap-1.5">
+                <div className="w-2 h-8 bg-black rounded-sm"></div>
+                <div className="w-2 h-8 bg-black rounded-sm"></div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {lessonTitle && (
         <div className="absolute top-safe top-16 left-4 right-16 z-30">
