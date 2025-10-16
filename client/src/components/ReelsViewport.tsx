@@ -1,8 +1,7 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement, useRef, useEffect } from 'react';
-import { useViewportHeight } from '@/hooks/useViewportHeight';
+import { cloneElement, isValidElement, useRef, useEffect, useState } from 'react';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -18,7 +17,29 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
   const y = useMotionValue(0);
   const animationRef = useRef<any>(null);
-  const viewportHeight = useViewportHeight();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewportHeight, setViewportHeight] = useState(0);
+
+  // Измеряем РЕАЛЬНУЮ высоту viewport контейнера
+  useEffect(() => {
+    const updateHeight = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.offsetHeight;
+        setViewportHeight(height);
+      }
+    };
+
+    updateHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // При изменении индекса - анимируем к новой позиции (БЕЗ СБРОСА!)
   useEffect(() => {
@@ -102,52 +123,54 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     : prevChild;
 
   return (
-    <div className="relative w-full h-viewport bg-black overflow-hidden">
+    <div ref={containerRef} className="relative w-full h-viewport bg-black overflow-hidden">
       <ProgressStrips
         total={totalReels}
         current={currentIndex}
         progress={getProgress(currentIndex)}
       />
 
-      <motion.div
-        drag="y"
-        dragConstraints={{ top: -viewportHeight * 2, bottom: viewportHeight * 2 }}
-        dragElastic={0}
-        onDragEnd={handleDragEnd}
-        style={{ y }}
-        className="relative w-full h-full"
-        data-testid="reels-viewport"
-      >
-        {/* Previous reel - статичная позиция -100% */}
-        {prevChild && (
-          <div 
-            key={`reel-${currentIndex - 1}`} 
-            className="absolute inset-0 w-full h-full" 
-            style={{ transform: 'translateY(-100%)' }}
-          >
-            {prevWithProps}
-          </div>
-        )}
-
-        {/* Current reel - статичная позиция 0 */}
-        <div 
-          key={`reel-${currentIndex}`} 
-          className="absolute inset-0 w-full h-full"
+      {viewportHeight > 0 && (
+        <motion.div
+          drag="y"
+          dragConstraints={{ top: -viewportHeight * 2, bottom: viewportHeight * 2 }}
+          dragElastic={0}
+          onDragEnd={handleDragEnd}
+          style={{ y }}
+          className="relative w-full h-full"
+          data-testid="reels-viewport"
         >
-          {currentWithProps}
-        </div>
+          {/* Previous reel - статичная позиция -100% */}
+          {prevChild && (
+            <div 
+              key={`reel-${currentIndex - 1}`} 
+              className="absolute inset-0 w-full h-full" 
+              style={{ transform: 'translateY(-100%)' }}
+            >
+              {prevWithProps}
+            </div>
+          )}
 
-        {/* Next reel - статичная позиция 100% */}
-        {nextChild && (
+          {/* Current reel - статичная позиция 0 */}
           <div 
-            key={`reel-${currentIndex + 1}`} 
-            className="absolute inset-0 w-full h-full" 
-            style={{ transform: 'translateY(100%)' }}
+            key={`reel-${currentIndex}`} 
+            className="absolute inset-0 w-full h-full"
           >
-            {nextWithProps}
+            {currentWithProps}
           </div>
-        )}
-      </motion.div>
+
+          {/* Next reel - статичная позиция 100% */}
+          {nextChild && (
+            <div 
+              key={`reel-${currentIndex + 1}`} 
+              className="absolute inset-0 w-full h-full" 
+              style={{ transform: 'translateY(100%)' }}
+            >
+              {nextWithProps}
+            </div>
+          )}
+        </motion.div>
+      )}
     </div>
   );
 }
