@@ -186,33 +186,6 @@ export default function ReelCard({
         data-testid={`video-interaction-overlay-${id}`}
       />
 
-      <AnimatePresence>
-        {isHoldingSpeed && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute top-1/2 right-8 -translate-y-1/2 z-20 bg-white/90 rounded-full px-4 py-2 pointer-events-none"
-          >
-            <span className="text-black font-bold">2x</span>
-          </motion.div>
-        )}
-        {isHoldingPause && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
-          >
-            <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-              <div className="flex gap-1.5">
-                <div className="w-2 h-8 bg-black rounded-sm"></div>
-                <div className="w-2 h-8 bg-black rounded-sm"></div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {lessonTitle && (
         <div className="absolute top-safe top-16 left-4 right-16 z-30">
