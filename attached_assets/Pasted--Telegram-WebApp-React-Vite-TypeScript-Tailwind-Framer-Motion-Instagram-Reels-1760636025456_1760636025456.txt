@@ -1,0 +1,285 @@
+Создай Telegram WebApp (React + Vite + TypeScript, Tailwind, Framer Motion) в тёмной Instagram Reels-эстетике (неон, плавные переходы, чёрно-фиолетовый фон). Приложение состоит из трёх этапов:
+
+Продажная Reels-воронка (8–10 клипов) → финальная CTA «Начать бесплатное обучение».
+
+Бесплатное обучение в формате Reels-уроков (заголовок = название урока; снизу раскрываемое описание как caption в Instagram).
+
+Финал обучения: крупная CTA «Купить основной продукт» и только здесь под ней — стена видео-отзывов (большой список, lazy-load).
+
+Важно: стена отзывов не показывается после продажной воронки. Она появляется только по завершении бесплатного обучения, усиливая конверсию в основной продукт.
+
+0) Стек и базовые пакеты
+
+React + Vite + TypeScript
+
+Tailwind CSS (тёмная тема по умолчанию)
+
+Framer Motion (анимации, свайпы)
+
+HTML5 <video> + react-player (mp4/HLS)
+
+Zustand (state)
+
+lucide-react (иконки)
+
+@twa-dev/sdk (Telegram WebApp SDK: WebApp.ready(), expand(), Haptics)
+
+ESLint + Prettier
+
+Структура каталогов:
+
+/src
+  /components
+    ReelsViewport.tsx
+    ReelCard.tsx
+    ProgressStrips.tsx
+    FloatingActions.tsx
+    FinalCTA.tsx
+    LessonCaption.tsx
+    TestimonialsWall.tsx
+    TestimonialModal.tsx
+    Header.tsx
+  /hooks
+    useReelsController.ts
+    useTelegram.ts
+  /store
+    app.store.ts
+  /pages
+    SalesFlow.tsx
+    TrainingFlow.tsx
+    TrainingFinal.tsx       // финальный экран обучения: CTA "Купить основной продукт" + стена отзывов
+    App.tsx
+  /lib
+    analytics.ts
+    content.ts
+  /styles
+    index.css
+/content
+  sales.json
+  lessons.json
+  testimonials.json
+index.html
+main.tsx
+vite.config.ts
+tailwind.config.js
+.env.example
+README.md
+
+1) Тёмная Reels-эстетика (UI/UX)
+
+Вертикальный фуллскрин 9:16, свайп вверх/вниз (Framer Motion drag="y"), один активный клип.
+
+Сверху — «линии-сторис» прогресса + счётчик n/N.
+
+Справа — столбик действий (like/share/mute).
+
+0–3 сек: крупный hook-overlay.
+
+CTA появляется после 60% просмотра клипа (fade+scale + haptic).
+
+Автопауза неактивных видео.
+
+Доступность: контраст, aria-label, ↑/↓ для переключения.
+
+2) Логика этапов и маршрутов
+
+Стартовый маршрут: / → SalesFlow (8–10 продажных клипов).
+
+Финальный клип SalesFlow содержит CTA «Начать бесплатное обучение», по нажатию → /training.
+
+TrainingFlow: последовательность Reels-уроков; у каждого — заголовок урока (слева сверху) и снизу LessonCaption с кнопкой «ещё/скрыть» (раскрываемое описание урока).
+
+По завершении последнего урока → /training/final (TrainingFinal):
+
+Большая CTA «Купить основной продукт» (кнопка Telegram MainButton синхронизирована).
+
+Ниже — TestimonialsWall (лента видео-отзывов, lazy-load + модальные плееры).
+
+Отдельный маршрут /testimonials не нужен — стену отзывов показываем именно в финале обучения, как часть закрывающего экрана.
+
+Deep-link параметры: ?mode=sales|training&reel={id}.
+
+3) Контентные схемы (JSON в /content)
+3.1 Продажная воронка — sales.json
+type SalesReel = {
+  id: string;
+  title: string;        // краткий заголовок клипа
+  hook?: string;        // 0–3 сек крупный текст-хук
+  videoUrl: string;
+  posterUrl?: string;
+  ctaText?: string;     // "Смотреть дальше", "Дальше", у финального: "Начать бесплатное обучение"
+  isFinal?: boolean;
+};
+
+
+Пример (заглушки):
+
+[
+  { "id": "s1", "title": "Каждый день похож на вчера?", "hook": "Стоп. Можно иначе.", "videoUrl": "/videos/s1.mp4", "posterUrl": "/posters/s1.jpg", "ctaText": "Смотреть дальше" },
+  { "id": "s2", "title": "Обычные люди и вертикальные видео", "hook": "Не блогеры. Обычные.", "videoUrl": "/videos/s2.mp4", "posterUrl": "/posters/s2.jpg", "ctaText": "Дальше" },
+  { "id": "s3", "title": "Поворот: система, а не хаос", "hook": "Просто следуй шагам", "videoUrl": "/videos/s3.mp4", "posterUrl": "/posters/s3.jpg", "ctaText": "Ок" },
+  { "id": "s4", "title": "ИИ ускоряет создание вертикальных видео", "hook": "Без сложных съёмок", "videoUrl": "/videos/s4.mp4", "posterUrl": "/posters/s4.jpg", "ctaText": "Продолжить" },
+  { "id": "s5", "title": "Жизнь после: свобода и творчество", "hook": "Ближе, чем кажется", "videoUrl": "/videos/s5.mp4", "posterUrl": "/posters/s5.jpg", "ctaText": "Дальше" },
+  { "id": "s6", "title": "Голоса учеников: короткие истории", "hook": "Смотри, что говорят", "videoUrl": "/videos/s6.mp4", "posterUrl": "/posters/s6.jpg", "ctaText": "Ещё" },
+  { "id": "s7", "title": "Как это устроено внутри", "hook": "Понятная механика", "videoUrl": "/videos/s7.mp4", "posterUrl": "/posters/s7.jpg", "ctaText": "Ок" },
+  { "id": "s8", "title": "Что внутри «Нейротрафика»", "hook": "Шаблоны. Поддержка. Путь.", "videoUrl": "/videos/s8.mp4", "posterUrl": "/posters/s8.jpg", "ctaText": "К финалу" },
+  { "id": "s9", "title": "Готов начать?", "hook": "Сделай шаг", "videoUrl": "/videos/s9.mp4", "posterUrl": "/posters/s9.jpg", "ctaText": "Начать бесплатное обучение", "isFinal": true }
+]
+
+3.2 Бесплатное обучение — lessons.json
+type LessonReel = {
+  id: string;
+  lessonTitle: string;   // заголовок урока (вверху)
+  videoUrl: string;
+  posterUrl?: string;
+  captionBrief: string;  // 1–2 строки до раскрытия
+  captionFull: string;   // развёрнутое описание (кнопка "ещё/скрыть")
+  nextCtaText?: string;  // "Следующий урок"
+  isFinal?: boolean;     // пометить последний урок
+};
+
+
+Пример (заглушки):
+
+[
+  {
+    "id": "l1",
+    "lessonTitle": "М1. Что такое бесплатный вертикальный трафик",
+    "videoUrl": "/videos/l1.mp4",
+    "posterUrl": "/posters/l1.jpg",
+    "captionBrief": "Почему вертикальные видео — главный источник бесплатного трафика.",
+    "captionFull": "Экосистема Reels/Shorts/TikTok, роль первых 3 секунд, удержание, базовая логика публикаций.",
+    "nextCtaText": "Следующий урок"
+  },
+  {
+    "id": "l2",
+    "lessonTitle": "М2. Формула сильного хука (0–3 сек)",
+    "videoUrl": "/videos/l2.mp4",
+    "posterUrl": "/posters/l2.jpg",
+    "captionBrief": "Хуки: боль, интрига, шок-факт. Визуальные приёмы.",
+    "captionFull": "Готовые шаблоны, примеры формулировок и тестирование удержания.",
+    "nextCtaText": "Следующий урок"
+  },
+  {
+    "id": "l3",
+    "lessonTitle": "М3. ИИ-инструменты для генерации видео",
+    "videoUrl": "/videos/l3.mp4",
+    "posterUrl": "/posters/l3.jpg",
+    "captionBrief": "Как собирать ролики без съёмки.",
+    "captionFull": "Скрипты, генерация кадров, озвучка, автоматизация публикаций. Рекомендации по весу и кодекам.",
+    "nextCtaText": "Следующий урок"
+  },
+  {
+    "id": "l4",
+    "lessonTitle": "М4. Публикация и сигналы алгоритмов",
+    "videoUrl": "/videos/l4.mp4",
+    "posterUrl": "/posters/l4.jpg",
+    "captionBrief": "Когда постить, как подписывать, что влияет на показ.",
+    "captionFull": "Хэштеги, сабтайтлы, ритм монтажа, первые 24 часа.",
+    "nextCtaText": "Следующий урок"
+  },
+  {
+    "id": "l5",
+    "lessonTitle": "М5. Безопасные практики и рост",
+    "videoUrl": "/videos/l5.mp4",
+    "posterUrl": "/posters/l5.jpg",
+    "captionBrief": "Как масштабироваться и не выгореть.",
+    "captionFull": "Контент-план, пачки роликов, контроль качества и аналитика.",
+    "nextCtaText": "К финалу"
+  },
+  {
+    "id": "l6",
+    "lessonTitle": "Финал: следующий шаг",
+    "videoUrl": "/videos/l6.mp4",
+    "posterUrl": "/posters/l6.jpg",
+    "captionBrief": "Подведём итоги и пригласим на основной продукт.",
+    "captionFull": "Что дальше: поддержка, материалы, сообщество.",
+    "isFinal": true
+  }
+]
+
+3.3 Отзывы — testimonials.json
+type Testimonial = {
+  id: string;
+  author: string;
+  role?: string;
+  thumbUrl: string;
+  videoUrl: string;
+  highlight?: string;
+};
+
+
+Пример (добавь 20+):
+
+[
+  { "id": "t1", "author": "Мария", "role": "Студент", "thumbUrl": "/thumbs/t1.jpg", "videoUrl": "/videos/t1.mp4", "highlight": "«Думала, что не получится — получилось»" },
+  { "id": "t2", "author": "Антон", "role": "Предприниматель", "thumbUrl": "/thumbs/t2.jpg", "videoUrl": "/videos/t2.mp4", "highlight": "«Главное — начать и делать»" }
+]
+
+4) Поведение компонентов
+
+ReelsViewport: фуллскрин, drag="y", снап на клип, коллбеки onIndexChange.
+
+ReelCard: video + overlay hook, правый action-bar, нижняя CTA (появляется на 60% просмотра).
+
+LessonCaption: свёрнуто 2–3 строки, кнопка «ещё/скрыть», событие lesson_expand.
+
+TrainingFinal: сверху крупный заголовок блока, большая кнопка «Купить основной продукт» (синхронизировать Telegram MainButton). Ниже — TestimonialsWall (грид 3 колонки на широких, 2 — на средних, 1 — на узких), бесконечная подгрузка, при клике — TestimonialModal (полноэкранный плеер).
+
+Haptics: лёгкая вибрация на свайп и появление CTA.
+
+5) Покупка основного продукта
+
+Сделай универсальный хендлер handlePrimaryPurchase():
+
+Если есть VITE_CHECKOUT_URL → WebApp.openLink(VITE_CHECKOUT_URL, { try_instant_view: false }).
+
+Если планируется Telegram Payments — оставь TODO-функцию обёртку startTelegramPayment(payload) (плейсхолдер).
+
+Синхронизируй текст MainButton Telegram с «Купить основной продукт».
+
+6) Аналитика (заглушки)
+
+События выводить в консоль + экспортировать функции:
+
+reel_view (id, mode: sales|training) — после ≥60% просмотра.
+
+cta_shown / cta_click (id, text).
+
+lesson_expand (id).
+
+purchase_click (location: training_final).
+
+7) Тон и соответствие правилам
+
+Не использовать обещания конкретных сумм/гарантий.
+
+Добавить дисклеймер мелким шрифтом внизу финала и уроков:
+«Материалы предоставлены в образовательных целях. Результаты зависят от ваших действий.»
+
+8) README
+
+Опиши:
+
+запуск в Replit;
+
+подключение Telegram-бота, выдачу WebApp URL через @BotFather;
+
+где менять sales.json, lessons.json, testimonials.json;
+
+замену видео/постеров в /public/videos и /public/posters;
+
+настройку VITE_CHECKOUT_URL;
+
+рекомендации по весу и кодекам видео.
+
+9) Сгенерируй демо
+
+Наполни sales.json 9 клипами, lessons.json — 6 уроками (как в примере), testimonials.json — минимум 12 отзывов.
+
+Выведи в консоли:
+«Нейротрафик: замените плейсхолдеры в /content и /public, подключите бота, задайте VITE_CHECKOUT_URL. Стена отзывов доступна после завершения бесплатного обучения.»
+
+Сгенерируй проект строго по спецификации.
+UI — как Instagram Reels: вертикальные свайпы, правый action-bar, прогресс-линии, caption с «ещё/скрыть» в уроках.
+Финал обучения содержит только здесь кнопку «Купить основной продукт» и под ней — стену видео-отзывов.
