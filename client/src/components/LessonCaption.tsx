@@ -22,7 +22,7 @@ export default function LessonCaption({ lessonId, brief, full, author, authorAva
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-10 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-7 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
       {author && (
         <div className="flex items-center gap-3 mb-2">
           <Avatar className="w-9 h-9 border-2 border-white/80">
