@@ -20,11 +20,10 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
 
-  // Устанавливаем правильную начальную позицию при монтировании
+  // Сбрасываем позицию при смене индекса
   useEffect(() => {
-    const hasPrev = currentIndex > 0;
-    y.set(hasPrev ? -viewportHeight : 0);
-  }, [currentIndex, viewportHeight, y]);
+    y.set(0);
+  }, [currentIndex, y]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
@@ -37,32 +36,30 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео
       goToNext();
-      const targetY = prevChild ? -viewportHeight * 2 : -viewportHeight;
-      animationRef.current = animate(y, targetY, {
+      animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(prevChild ? -viewportHeight : 0);
+          y.set(0);
           animationRef.current = null;
         }
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
       // Свайп вниз - переход на предыдущее видео
       goToPrev();
-      animationRef.current = animate(y, 0, {
+      animationRef.current = animate(y, viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(-viewportHeight);
+          y.set(0);
           animationRef.current = null;
         }
       });
     } else {
       // Не достигли порога - возврат обратно
-      const currentY = prevChild ? -viewportHeight : 0;
-      animationRef.current = animate(y, currentY, {
+      animationRef.current = animate(y, 0, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -83,13 +80,12 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       if (animationRef.current) {
         animationRef.current.stop();
       }
-      const targetY = prevChild ? -viewportHeight * 2 : -viewportHeight;
-      animationRef.current = animate(y, targetY, {
+      animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          y.set(-viewportHeight);
+          y.set(0);
           animationRef.current = null;
         }
       });
@@ -130,24 +126,24 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         dragElastic={0.05}
         onDragEnd={handleDragEnd}
         style={{ y }}
-        className="relative w-full"
+        className="relative w-full h-full"
         data-testid="reels-viewport"
       >
         {/* Previous reel */}
         {prevChild && (
-          <div className="w-full" style={{ height: `${viewportHeight}px` }}>
+          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
             {prevWithProps}
           </div>
         )}
 
         {/* Current reel */}
-        <div className="w-full" style={{ height: `${viewportHeight}px` }}>
+        <div className="absolute inset-0 w-full h-full">
           {currentWithProps}
         </div>
 
         {/* Next reel */}
         {nextChild && (
-          <div className="w-full" style={{ height: `${viewportHeight}px` }}>
+          <div className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
             {nextWithProps}
           </div>
         )}
