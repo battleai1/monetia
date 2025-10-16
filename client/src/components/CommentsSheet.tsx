@@ -69,7 +69,13 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             dragElastic={{ top: 0, bottom: 0.5 }}
             onDragEnd={handleDragEnd}
             transition={{ type: 'spring', damping: 35, stiffness: 400 }}
-            className="fixed lg:absolute bottom-0 left-0 right-0 z-50 bg-[#262626] rounded-t-3xl max-h-[75vh] lg:max-h-[660px] flex flex-col pb-safe lg:pb-0"
+            style={{
+              bottom: 0,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '100vw',
+            }}
+            className="fixed z-50 bg-[#262626] rounded-t-3xl max-h-[75vh] lg:max-h-[660px] lg:w-[402px] flex flex-col pb-safe lg:pb-0"
             data-testid="comments-sheet"
           >
             {/* Drag Handle */}
