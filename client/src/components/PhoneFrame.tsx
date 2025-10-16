@@ -39,17 +39,19 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
     <>
       <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black z-10">
         <div className="relative z-20">
+          {/* iPhone Frame - no overflow hidden, pointer-events-none to allow interaction with content */}
           <div 
-            className="relative bg-black rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-slate-900 z-30"
+            className="relative bg-black rounded-[3rem] shadow-2xl border-[14px] border-slate-900 pointer-events-none"
             style={{
               width: '430px',
               height: '932px',
+              zIndex: 30,
             }}
           >
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-full z-50 shadow-lg"></div>
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-full shadow-lg" style={{ zIndex: 50 }}></div>
             
             <div 
-              className="w-full h-full overflow-hidden bg-black flex justify-center"
+              className="w-full h-full overflow-hidden bg-black flex justify-center pointer-events-auto"
             >
               <div style={{ width: '402px', height: '880px' }} className="overflow-visible bg-black">
                 {children}
@@ -57,11 +59,12 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
             </div>
           </div>
           
-          <div className="absolute -right-1 top-32 w-1 h-12 bg-slate-900 rounded-l"></div>
-          <div className="absolute -right-1 top-52 w-1 h-16 bg-slate-900 rounded-l"></div>
-          <div className="absolute -right-1 top-72 w-1 h-16 bg-slate-900 rounded-l"></div>
-          <div className="absolute -left-1 top-28 w-1 h-8 bg-slate-900 rounded-r"></div>
-          <div className="absolute -left-1 top-40 w-1 h-20 bg-slate-900 rounded-r"></div>
+          {/* iPhone buttons - also pointer-events-none */}
+          <div className="absolute -right-1 top-32 w-1 h-12 bg-slate-900 rounded-l pointer-events-none" style={{ zIndex: 30 }}></div>
+          <div className="absolute -right-1 top-52 w-1 h-16 bg-slate-900 rounded-l pointer-events-none" style={{ zIndex: 30 }}></div>
+          <div className="absolute -right-1 top-72 w-1 h-16 bg-slate-900 rounded-l pointer-events-none" style={{ zIndex: 30 }}></div>
+          <div className="absolute -left-1 top-28 w-1 h-8 bg-slate-900 rounded-r pointer-events-none" style={{ zIndex: 30 }}></div>
+          <div className="absolute -left-1 top-40 w-1 h-20 bg-slate-900 rounded-r pointer-events-none" style={{ zIndex: 30 }}></div>
         </div>
       </div>
 
