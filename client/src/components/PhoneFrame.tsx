@@ -42,7 +42,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
             <div 
               className="w-full h-full overflow-hidden bg-black flex justify-center"
             >
-              <div style={{ width: '402px', height: '880px' }} className="overflow-hidden bg-black">
+              <div style={{ width: '402px', height: '880px' }} className="overflow-visible bg-black">
                 {children}
               </div>
             </div>
