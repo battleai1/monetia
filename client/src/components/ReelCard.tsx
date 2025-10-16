@@ -144,7 +144,11 @@ export default function ReelCard({
   }, [isHoldingSpeed]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Запоминаем начальную точку
+    // Запоминаем начальную точку и вычисляем clickRatio ДО setTimeout
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const clickRatio = x / rect.width;
+    
     pointerStartRef.current = { x: e.clientX, y: e.clientY };
     isDraggingRef.current = false;
     
@@ -152,10 +156,6 @@ export default function ReelCard({
     setTimeout(() => {
       // Если не начали драг - активируем hold
       if (pointerStartRef.current && !isDraggingRef.current) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const clickRatio = x / rect.width;
-
         if (clickRatio > 0.75) {
           setIsHoldingSpeed(true);
         } else {
