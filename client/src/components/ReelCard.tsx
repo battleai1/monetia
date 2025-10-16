@@ -58,6 +58,8 @@ export default function ReelCard({
   const [showComments, setShowComments] = useState(false);
   const [isHoldingPause, setIsHoldingPause] = useState(false);
   const [isHoldingSpeed, setIsHoldingSpeed] = useState(false);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
   const { isMuted } = useAppStore();
 
   useEffect(() => {
@@ -142,18 +144,44 @@ export default function ReelCard({
   }, [isHoldingSpeed]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const clickRatio = x / rect.width;
+    // Запоминаем начальную точку
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+    
+    // Задержка перед активацией hold - чтобы дать время на начало drag
+    setTimeout(() => {
+      // Если не начали драг - активируем hold
+      if (pointerStartRef.current && !isDraggingRef.current) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const clickRatio = x / rect.width;
 
-    if (clickRatio > 0.75) {
-      setIsHoldingSpeed(true);
-    } else {
-      setIsHoldingPause(true);
+        if (clickRatio > 0.75) {
+          setIsHoldingSpeed(true);
+        } else {
+          setIsHoldingPause(true);
+        }
+      }
+    }, 150); // 150ms задержка
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!pointerStartRef.current) return;
+    
+    const deltaX = Math.abs(e.clientX - pointerStartRef.current.x);
+    const deltaY = Math.abs(e.clientY - pointerStartRef.current.y);
+    
+    // Если движение больше 10px - это drag
+    if (deltaX > 10 || deltaY > 10) {
+      isDraggingRef.current = true;
+      setIsHoldingPause(false);
+      setIsHoldingSpeed(false);
     }
   };
 
   const handlePointerUp = () => {
+    pointerStartRef.current = null;
+    isDraggingRef.current = false;
     setIsHoldingPause(false);
     setIsHoldingSpeed(false);
   };
@@ -195,6 +223,7 @@ export default function ReelCard({
         <div 
           className="absolute inset-0 z-10 touch-none"
           onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
           onPointerCancel={handlePointerUp}
