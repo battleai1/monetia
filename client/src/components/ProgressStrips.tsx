@@ -7,19 +7,25 @@ interface ProgressStripsProps {
 }
 
 export default function ProgressStrips({ total, current, progress }: ProgressStripsProps) {
-  const [isTelegram, setIsTelegram] = useState(false);
+  const [paddingTop, setPaddingTop] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    // Проверяем, что мы в Telegram WebApp
-    const isTelegramApp = typeof window !== 'undefined' && window.Telegram?.WebApp;
-    setIsTelegram(!!isTelegramApp);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+    
+    if (isTelegram) {
+      // Мобильный Telegram WebApp: 104px, Десктопный: 40px
+      setPaddingTop(isMobile ? '104px' : '40px');
+    }
   }, []);
 
   return (
     <div 
       className="absolute top-0 left-0 right-0 z-50 px-4 pt-2 pb-2"
       style={{
-        paddingTop: isTelegram ? '104px' : undefined,
+        paddingTop,
       }}
     >
       <div className="flex gap-1 mb-2">
