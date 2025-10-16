@@ -9,6 +9,7 @@ import SalesFlow from "@/pages/SalesFlow";
 import TrainingFlow from "@/pages/TrainingFlow";
 import TrainingFinal from "@/pages/TrainingFinal";
 import NotFound from "@/pages/not-found";
+import PhoneFrame from "@/components/PhoneFrame";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -44,8 +45,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <PhoneFrame>
+          <Toaster />
+          <Router />
+        </PhoneFrame>
       </TooltipProvider>
     </QueryClientProvider>
   );
