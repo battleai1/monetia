@@ -37,7 +37,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
 
   return (
     <>
-      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black z-10">
+      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black z-[60]">
         <div className="relative z-20">
           {/* iPhone Frame with overflow hidden */}
           <div 
