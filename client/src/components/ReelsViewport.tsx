@@ -20,10 +20,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
 
-  // Сбрасываем позицию при смене индекса
-  useEffect(() => {
-    y.set(0);
-  }, [currentIndex, y]);
+  // Не нужен useEffect для сброса позиции - это делается в onComplete анимации
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
@@ -36,24 +33,24 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     
     if (currentY < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео (продолжаем движение вверх от текущей позиции)
-      goToNext();
       animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
+          goToNext();
           y.set(0);
           animationRef.current = null;
         }
       });
     } else if (currentY > threshold && currentIndex > 0) {
       // Свайп вниз - переход на предыдущее видео (продолжаем движение вниз от текущей позиции)
-      goToPrev();
       animationRef.current = animate(y, viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
         onComplete: () => {
+          goToPrev();
           y.set(0);
           animationRef.current = null;
         }
@@ -77,7 +74,6 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
   const handleVideoEnded = () => {
     if (currentIndex < totalReels - 1) {
-      goToNext();
       if (animationRef.current) {
         animationRef.current.stop();
       }
@@ -86,6 +82,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
+          goToNext();
           y.set(0);
           animationRef.current = null;
         }
