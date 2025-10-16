@@ -72,9 +72,6 @@ export default function ReelAuthorCaption({
           exit={{ opacity: 0 }}
           className="text-white pr-16"
         >
-          <h3 className="text-base font-medium mb-1" data-testid={`title-${reelId}`}>
-            {title}
-          </h3>
           <p 
             onClick={toggleExpand}
             className="text-sm leading-relaxed text-white/90 cursor-pointer" 
