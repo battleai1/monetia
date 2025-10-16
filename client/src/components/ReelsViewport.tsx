@@ -126,7 +126,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
       <motion.div
         drag="y"
-        dragConstraints={{ top: -viewportHeight, bottom: viewportHeight }}
+        dragConstraints={{ top: -viewportHeight * 1.2, bottom: viewportHeight * 1.2 }}
         dragElastic={0.05}
         onDragEnd={handleDragEnd}
         style={{ y }}
