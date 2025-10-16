@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -57,22 +56,17 @@ export default function ReelAuthorCaption({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="text-white"
+          className="text-white pr-16"
         >
           <h3 className="text-base font-medium mb-1" data-testid={`title-${reelId}`}>
             {title}
           </h3>
-          <p className="text-sm leading-relaxed text-white/90" data-testid={`description-${reelId}`}>
-            {isExpanded ? descriptionFull : descriptionBrief}{' '}
-            {!isExpanded && (
-              <button
-                onClick={toggleExpand}
-                className="text-white/70 hover-elevate active-elevate-2"
-                data-testid={`button-expand-${reelId}`}
-              >
-                ...
-              </button>
-            )}
+          <p 
+            onClick={toggleExpand}
+            className="text-sm leading-relaxed text-white/90 cursor-pointer" 
+            data-testid={`description-${reelId}`}
+          >
+            {isExpanded ? descriptionFull : `${descriptionBrief}...`}
           </p>
           {isExpanded && (
             <button

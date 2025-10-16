@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { logLessonExpand } from '@/lib/analytics';
@@ -50,19 +49,14 @@ export default function LessonCaption({ lessonId, brief, full, author, authorAva
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="text-white"
+          className="text-white pr-16"
         >
-          <p className="text-sm leading-relaxed text-white/90" data-testid={`caption-brief-${lessonId}`}>
-            {isExpanded ? full : brief}{' '}
-            {!isExpanded && (
-              <button
-                onClick={toggleExpand}
-                className="text-white/70 hover-elevate active-elevate-2"
-                data-testid={`button-expand-${lessonId}`}
-              >
-                ...
-              </button>
-            )}
+          <p 
+            onClick={toggleExpand}
+            className="text-sm leading-relaxed text-white/90 cursor-pointer" 
+            data-testid={`caption-brief-${lessonId}`}
+          >
+            {isExpanded ? full : `${brief}...`}
           </p>
           {isExpanded && (
             <button
