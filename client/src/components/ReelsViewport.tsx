@@ -1,7 +1,7 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement } from 'react';
+import { cloneElement, isValidElement, useRef } from 'react';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -16,11 +16,15 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   });
 
   const y = useMotionValue(0);
+  const isAnimating = useRef(false);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
+    if (isAnimating.current) return;
+    
     const threshold = 50;
     
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
+      isAnimating.current = true;
       animate(y, -window.innerHeight, {
         type: "spring",
         stiffness: 300,
@@ -28,9 +32,11 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         onComplete: () => {
           goToNext();
           y.set(0);
+          isAnimating.current = false;
         }
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
+      isAnimating.current = true;
       animate(y, window.innerHeight, {
         type: "spring",
         stiffness: 300,
@@ -38,6 +44,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         onComplete: () => {
           goToPrev();
           y.set(0);
+          isAnimating.current = false;
         }
       });
     } else {

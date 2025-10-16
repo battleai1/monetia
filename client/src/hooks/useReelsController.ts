@@ -18,18 +18,24 @@ export const useReelsController = ({
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const goToNext = useCallback(() => {
-    if (currentIndex < totalReels - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      triggerHaptic('light');
-    }
-  }, [currentIndex, totalReels, triggerHaptic]);
+    setCurrentIndex((prev) => {
+      if (prev < totalReels - 1) {
+        triggerHaptic('light');
+        return prev + 1;
+      }
+      return prev;
+    });
+  }, [totalReels, triggerHaptic]);
 
   const goToPrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-      triggerHaptic('light');
-    }
-  }, [currentIndex, triggerHaptic]);
+    setCurrentIndex((prev) => {
+      if (prev > 0) {
+        triggerHaptic('light');
+        return prev - 1;
+      }
+      return prev;
+    });
+  }, [triggerHaptic]);
 
   const goToIndex = useCallback((index: number) => {
     if (index >= 0 && index < totalReels) {
