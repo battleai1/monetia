@@ -4,6 +4,9 @@ interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   close: () => void;
+  requestFullscreen?: () => void;
+  exitFullscreen?: () => void;
+  isFullscreen?: boolean;
   MainButton: {
     text: string;
     color: string;
@@ -34,6 +37,7 @@ interface TelegramWebApp {
       username?: string;
     };
   };
+  initData: string;
 }
 
 declare global {
@@ -52,6 +56,16 @@ export const useTelegram = () => {
       const app = window.Telegram.WebApp;
       app.ready();
       app.expand();
+      
+      if (app.requestFullscreen) {
+        try {
+          app.requestFullscreen();
+          console.log('[Telegram WebApp] Fullscreen mode requested');
+        } catch (error) {
+          console.warn('[Telegram WebApp] Fullscreen not available:', error);
+        }
+      }
+      
       setWebApp(app);
     }
   }, []);

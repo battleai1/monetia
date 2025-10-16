@@ -1,16 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData: string;
-        initDataUnsafe: any;
-      };
-    };
-  }
-}
-
 function getAuthHeaders(): HeadersInit {
   const headers: HeadersInit = {};
   
