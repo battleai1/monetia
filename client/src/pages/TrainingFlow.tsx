@@ -26,6 +26,8 @@ export default function TrainingFlow() {
             isActive={true}
             mode="training"
             onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
+            author={lesson.author}
+            authorAvatar={lesson.authorAvatar}
           />
         ))}
       </ReelsViewport>

@@ -4,7 +4,8 @@ import { useAppStore } from '@/store/app.store';
 import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
 import LessonCaption from './LessonCaption';
-import { logReelView, logCTAShown, logCTAClick } from '@/lib/analytics';
+import ReelAuthorCaption from './ReelAuthorCaption';
+import { logReelView, logCTAShown, logCTAClick, logLessonExpand } from '@/lib/analytics';
 
 interface ReelCardProps {
   id: string;
@@ -19,6 +20,11 @@ interface ReelCardProps {
   mode: 'sales' | 'training';
   onProgress?: (progress: number) => void;
   onCTAClick?: () => void;
+  author?: string;
+  authorAvatar?: string;
+  title?: string;
+  descriptionBrief?: string;
+  descriptionFull?: string;
 }
 
 export default function ReelCard({
@@ -34,6 +40,11 @@ export default function ReelCard({
   mode,
   onProgress,
   onCTAClick,
+  author,
+  authorAvatar,
+  title,
+  descriptionBrief,
+  descriptionFull,
 }: ReelCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showHook, setShowHook] = useState(true);
@@ -129,7 +140,25 @@ export default function ReelCard({
       <FloatingActions />
 
       {mode === 'training' && lessonBrief && lessonFull && (
-        <LessonCaption lessonId={id} brief={lessonBrief} full={lessonFull} />
+        <LessonCaption 
+          lessonId={id} 
+          brief={lessonBrief} 
+          full={lessonFull}
+          author={author}
+          authorAvatar={authorAvatar}
+        />
+      )}
+
+      {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
+        <ReelAuthorCaption
+          reelId={id}
+          author={author}
+          authorAvatar={authorAvatar}
+          title={title}
+          descriptionBrief={descriptionBrief}
+          descriptionFull={descriptionFull}
+          onExpand={() => logLessonExpand(id)}
+        />
       )}
 
       {ctaText && (

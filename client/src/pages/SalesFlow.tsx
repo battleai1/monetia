@@ -24,6 +24,11 @@ export default function SalesFlow() {
             isActive={true}
             mode="sales"
             onCTAClick={reel.isFinal ? handleFinalCTA : undefined}
+            author={reel.author}
+            authorAvatar={reel.authorAvatar}
+            title={reel.title}
+            descriptionBrief={reel.descriptionBrief}
+            descriptionFull={reel.descriptionFull}
           />
         ))}
       </ReelsViewport>
