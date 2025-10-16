@@ -28,7 +28,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
 
   return (
     <>
-      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black">
         <div className="relative">
           <div 
             className="relative bg-black rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-slate-900"
