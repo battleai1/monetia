@@ -45,6 +45,7 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
             style={{
               width: '430px',
               height: '932px',
+              zIndex: 30,
             }}
           >
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-full shadow-lg" style={{ zIndex: 50 }}></div>
@@ -58,33 +59,22 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
             </div>
           </div>
           
-          {/* Masking layer - covers everything outside the phone with black, z-index above comments */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{ zIndex: 40 }}
-          >
-            {/* Black mask with hole for phone screen */}
-            <div 
-              className="absolute inset-0 bg-black"
-              style={{
-                clipPath: `polygon(
-                  0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-                  calc(50% - 201px + 14px) calc(50% - 466px + 14px),
-                  calc(50% - 201px + 14px) calc(50% + 466px - 14px),
-                  calc(50% + 201px - 14px) calc(50% + 466px - 14px),
-                  calc(50% + 201px - 14px) calc(50% - 466px + 14px),
-                  calc(50% - 201px + 14px) calc(50% - 466px + 14px)
-                )`
-              }}
-            ></div>
-          </div>
-          
           {/* iPhone buttons */}
           <div className="absolute -right-1 top-32 w-1 h-12 bg-slate-900 rounded-l" style={{ zIndex: 30 }}></div>
           <div className="absolute -right-1 top-52 w-1 h-16 bg-slate-900 rounded-l" style={{ zIndex: 30 }}></div>
           <div className="absolute -right-1 top-72 w-1 h-16 bg-slate-900 rounded-l" style={{ zIndex: 30 }}></div>
           <div className="absolute -left-1 top-28 w-1 h-8 bg-slate-900 rounded-r" style={{ zIndex: 30 }}></div>
           <div className="absolute -left-1 top-40 w-1 h-20 bg-slate-900 rounded-r" style={{ zIndex: 30 }}></div>
+          
+          {/* Bottom mask - covers the area below the phone to hide the comments sheet */}
+          <div 
+            className="absolute left-0 right-0 bg-black pointer-events-none"
+            style={{ 
+              top: '932px',
+              height: 'calc(100vh - ((100vh - 932px) / 2) - 932px)',
+              zIndex: 40 
+            }}
+          ></div>
         </div>
       </div>
 
