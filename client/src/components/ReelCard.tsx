@@ -20,6 +20,7 @@ interface ReelCardProps {
   mode: 'sales' | 'training';
   onProgress?: (progress: number) => void;
   onCTAClick?: () => void;
+  onVideoEnded?: () => void;
   author?: string;
   authorAvatar?: string;
   title?: string;
@@ -40,6 +41,7 @@ export default function ReelCard({
   mode,
   onProgress,
   onCTAClick,
+  onVideoEnded,
   author,
   authorAvatar,
   title,
@@ -82,9 +84,17 @@ export default function ReelCard({
       }
     };
 
+    const handleEnded = () => {
+      onVideoEnded?.();
+    };
+
     video.addEventListener('timeupdate', handleTimeUpdate);
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [id, mode, ctaText, showCTA, hasLoggedView, onProgress, onCTAClick]);
+    video.addEventListener('ended', handleEnded);
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, [id, mode, ctaText, showCTA, hasLoggedView, onProgress, onCTAClick, onVideoEnded]);
 
   useEffect(() => {
     if (isActive && ctaText && onCTAClick) {
@@ -118,7 +128,6 @@ export default function ReelCard({
         ref={videoRef}
         src={videoUrl}
         poster={posterUrl}
-        loop
         muted={isMuted}
         playsInline
         className="w-full h-full object-cover"

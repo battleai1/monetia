@@ -64,10 +64,29 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const nextChild = currentIndex < totalReels - 1 ? children[currentIndex + 1] : null;
   const prevChild = currentIndex > 0 ? children[currentIndex - 1] : null;
 
+  const handleVideoEnded = () => {
+    if (currentIndex < totalReels - 1) {
+      goToNext();
+      if (animationRef.current) {
+        animationRef.current.stop();
+      }
+      animationRef.current = animate(y, -window.innerHeight, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        onComplete: () => {
+          y.set(0);
+          animationRef.current = null;
+        }
+      });
+    }
+  };
+
   const currentWithProps = isValidElement(currentChild) 
     ? cloneElement(currentChild as React.ReactElement<any>, {
         isActive: true,
         onProgress: (progress: number) => updateProgress(currentIndex, progress),
+        onVideoEnded: handleVideoEnded,
       })
     : currentChild;
 
