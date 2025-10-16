@@ -168,16 +168,14 @@ export default function ReelCard({
   return (
     <div className="relative w-full h-full bg-black overflow-hidden lg:overflow-visible">
       <motion.div
-        className="relative w-full origin-top overflow-hidden"
+        className="relative w-full h-full origin-top overflow-hidden"
         animate={showComments ? {
-          scale: 0.78,
-          y: -140,
-          height: '52%',
+          scale: 0.55,
+          y: -180,
           borderRadius: 28,
         } : {
           scale: 1,
           y: 0,
-          height: '100%',
           borderRadius: 0,
         }}
         transition={{ type: 'spring', damping: 35, stiffness: 400 }}
