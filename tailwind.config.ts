@@ -14,6 +14,9 @@ export default {
         'safe': 'env(safe-area-inset-top)',
         'safe-bottom': 'env(safe-area-inset-bottom)',
       },
+      padding: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
       colors: {
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",

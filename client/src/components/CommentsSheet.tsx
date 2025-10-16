@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart } from 'lucide-react';
+import { Info, Smile } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
 
@@ -17,9 +17,12 @@ interface CommentsSheetProps {
   onClose: () => void;
   comments: Comment[];
   commentCount: number;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function CommentsSheet({ isOpen, onClose, comments, commentCount }: CommentsSheetProps) {
+const EMOJI_REACTIONS = ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'];
+
+export default function CommentsSheet({ isOpen, onClose, comments, commentCount, onOpenChange }: CommentsSheetProps) {
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
 
   const toggleLike = (commentId: string) => {
@@ -34,6 +37,11 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount 
     });
   };
 
+  const handleClose = () => {
+    onClose();
+    onOpenChange?.(false);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -42,8 +50,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50"
-            onClick={onClose}
+            className="fixed inset-0 bg-transparent z-40 pointer-events-none"
             data-testid="comments-overlay"
           />
           
@@ -51,90 +58,140 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount 
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 rounded-t-2xl max-h-[85vh] flex flex-col"
+            transition={{ type: 'spring', damping: 35, stiffness: 400 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-[#262626] rounded-t-3xl max-h-[75vh] flex flex-col pb-safe"
             data-testid="comments-sheet"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                Комментарии ({commentCount})
+            {/* Drag Handle */}
+            <div className="flex justify-center pt-2 pb-3" onClick={handleClose}>
+              <div className="w-10 h-1 bg-zinc-600 rounded-full" data-testid="drag-handle" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pb-4">
+              <div className="w-6" /> {/* Spacer */}
+              <h3 className="text-base font-semibold text-white">
+                Comments
               </h3>
               <button
-                onClick={onClose}
-                className="p-1 hover-elevate active-elevate-2 rounded-full"
-                data-testid="button-close-comments"
+                onClick={handleClose}
+                className="p-1"
+                data-testid="button-info-comments"
               >
-                <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                <Info className="w-6 h-6 text-white" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-3">
+            {/* Comments List */}
+            <div className="flex-1 overflow-y-auto px-4">
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3 mb-4" data-testid={`comment-${comment.id}`}>
-                  <Avatar className="w-8 h-8 flex-shrink-0">
+                <div key={comment.id} className="flex gap-3 mb-6" data-testid={`comment-${comment.id}`}>
+                  <Avatar className="w-9 h-9 flex-shrink-0">
                     <AvatarImage src={comment.authorAvatar} alt={comment.author} />
-                    <AvatarFallback className="bg-purple-600 text-white text-xs">
+                    <AvatarFallback className="bg-zinc-700 text-white text-sm">
                       {comment.author.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                      <span className="text-sm font-semibold text-white">
                         {comment.author}
                       </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <span className="text-xs text-zinc-500">
                         {comment.timestamp}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-900 dark:text-white leading-relaxed">
+                    <p className="text-sm text-white leading-relaxed mb-2">
                       {comment.text}
                     </p>
-                    <div className="flex items-center gap-4 mt-2">
+                    <button 
+                      className="text-xs text-zinc-500 font-semibold"
+                      data-testid={`button-reply-${comment.id}`}
+                    >
+                      Reply
+                    </button>
+                    {comment.likes > 0 && (
                       <button 
-                        className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold hover:text-zinc-700 dark:hover:text-zinc-200"
-                        data-testid={`button-reply-${comment.id}`}
+                        className="text-xs text-zinc-500 ml-4"
+                        data-testid={`button-view-likes-${comment.id}`}
                       >
-                        Ответить
+                        View {comment.likes + (likedComments.has(comment.id) ? 1 : 0)} {comment.likes === 1 ? 'like' : 'likes'}
                       </button>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {likedComments.has(comment.id) ? comment.likes + 1 : comment.likes} отметок «Нравится»
-                      </span>
-                    </div>
+                    )}
                   </div>
 
                   <button 
                     onClick={() => toggleLike(comment.id)}
-                    className="p-1 flex-shrink-0"
+                    className="flex-shrink-0 mt-1"
                     data-testid={`button-like-comment-${comment.id}`}
                   >
-                    <Heart 
-                      className={`w-3.5 h-3.5 transition-colors ${
+                    <svg 
+                      className={`w-3 h-3 transition-colors ${
                         likedComments.has(comment.id) 
                           ? 'text-red-500 fill-red-500' 
-                          : 'text-zinc-400 dark:text-zinc-600'
+                          : 'text-zinc-500'
                       }`}
-                    />
+                      viewBox="0 0 24 24"
+                      fill={likedComments.has(comment.id) ? 'currentColor' : 'none'}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
                   </button>
                 </div>
               ))}
+              
+              {comments.length > 2 && (
+                <button 
+                  className="flex items-center gap-2 text-sm text-zinc-500 mb-4"
+                  data-testid="button-show-hidden-comments"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <line x1="5" y1="12" x2="19" y2="12" transform="rotate(90 12 12)"></line>
+                  </svg>
+                  See hidden comments
+                </button>
+              )}
             </div>
 
-            <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
+            {/* Emoji Reactions */}
+            <div className="flex gap-3 px-4 py-3 overflow-x-auto">
+              {EMOJI_REACTIONS.map((emoji, index) => (
+                <button
+                  key={index}
+                  className="text-2xl flex-shrink-0 hover:scale-110 transition-transform"
+                  data-testid={`emoji-reaction-${index}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+
+            {/* Comment Input */}
+            <div className="px-4 pb-4 pt-2">
               <div className="flex items-center gap-3">
-                <Avatar className="w-8 h-8 flex-shrink-0">
-                  <AvatarFallback className="bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs">
+                <Avatar className="w-9 h-9 flex-shrink-0">
+                  <AvatarFallback className="bg-zinc-700 text-white text-sm">
                     Вы
                   </AvatarFallback>
                 </Avatar>
                 <input
                   type="text"
-                  placeholder="Добавьте комментарий..."
-                  className="flex-1 bg-transparent text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 outline-none"
+                  placeholder="Add a comment for d_r_wear"
+                  className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
                   data-testid="input-comment"
                 />
+                <button className="flex-shrink-0" data-testid="button-emoji-picker">
+                  <Smile className="w-6 h-6 text-white" />
+                </button>
               </div>
             </div>
+
+            {/* Safe Area Indicator (like on screenshot) */}
+            <div className="h-1 mx-auto w-32 bg-white/80 rounded-full mb-2" />
           </motion.div>
         </>
       )}

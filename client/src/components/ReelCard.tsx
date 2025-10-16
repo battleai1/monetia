@@ -166,89 +166,103 @@ export default function ReelCard({
   };
 
   return (
-    <div className="relative w-full h-full bg-black">
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        poster={posterUrl}
-        muted={isMuted}
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-        data-testid={`reel-video-${id}`}
-      />
+    <div className="relative w-full h-full bg-black overflow-hidden">
+      <motion.div
+        className="relative w-full h-full origin-top"
+        animate={showComments ? {
+          scale: 0.88,
+          y: -100,
+          borderRadius: 24,
+        } : {
+          scale: 1,
+          y: 0,
+          borderRadius: 0,
+        }}
+        transition={{ type: 'spring', damping: 35, stiffness: 400 }}
+      >
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          poster={posterUrl}
+          muted={isMuted}
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          data-testid={`reel-video-${id}`}
+        />
 
-      <div 
-        className="absolute inset-0 z-10 touch-none"
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        data-testid={`video-interaction-overlay-${id}`}
-      />
+        <div 
+          className="absolute inset-0 z-10 touch-none"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          data-testid={`video-interaction-overlay-${id}`}
+        />
 
-
-      {lessonTitle && (
-        <div className="absolute top-safe top-16 left-4 right-16 z-30">
-          <h2 className="text-white text-xl font-semibold leading-tight" data-testid={`lesson-title-${id}`}>
-            {lessonTitle}
-          </h2>
-        </div>
-      )}
-
-      <AnimatePresence>
-        {showHook && hook && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 flex items-center justify-center z-20 bg-black/30 backdrop-blur-sm px-8"
-            data-testid={`hook-overlay-${id}`}
-          >
-            <h1 className="text-white text-4xl font-bold text-center leading-tight">
-              {hook}
-            </h1>
-          </motion.div>
+        {lessonTitle && (
+          <div className="absolute top-safe top-16 left-4 right-16 z-30">
+            <h2 className="text-white text-xl font-semibold leading-tight" data-testid={`lesson-title-${id}`}>
+              {lessonTitle}
+            </h2>
+          </div>
         )}
-      </AnimatePresence>
 
-      <FloatingActions 
-        onComment={() => setShowComments(true)}
-        commentCount={comments.length}
-        reelId={id}
-      />
+        <AnimatePresence>
+          {showHook && hook && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 flex items-center justify-center z-20 bg-black/30 backdrop-blur-sm px-8"
+              data-testid={`hook-overlay-${id}`}
+            >
+              <h1 className="text-white text-4xl font-bold text-center leading-tight">
+                {hook}
+              </h1>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <FloatingActions 
+          onComment={() => setShowComments(true)}
+          commentCount={comments.length}
+          reelId={id}
+        />
+
+        {mode === 'training' && lessonBrief && lessonFull && (
+          <LessonCaption 
+            lessonId={id} 
+            brief={lessonBrief} 
+            full={lessonFull}
+            author={author}
+            authorAvatar={authorAvatar}
+          />
+        )}
+
+        {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
+          <ReelAuthorCaption
+            reelId={id}
+            author={author}
+            authorAvatar={authorAvatar}
+            title={title}
+            descriptionBrief={descriptionBrief}
+            descriptionFull={descriptionFull}
+            onExpand={() => logLessonExpand(id)}
+          />
+        )}
+
+        {ctaText && (
+          <FinalCTA text={ctaText} onClick={handleCTAClick} visible={showCTA} />
+        )}
+      </motion.div>
 
       <CommentsSheet
         isOpen={showComments}
         onClose={() => setShowComments(false)}
         comments={comments}
         commentCount={comments.length}
+        onOpenChange={setShowComments}
       />
-
-      {mode === 'training' && lessonBrief && lessonFull && (
-        <LessonCaption 
-          lessonId={id} 
-          brief={lessonBrief} 
-          full={lessonFull}
-          author={author}
-          authorAvatar={authorAvatar}
-        />
-      )}
-
-      {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
-        <ReelAuthorCaption
-          reelId={id}
-          author={author}
-          authorAvatar={authorAvatar}
-          title={title}
-          descriptionBrief={descriptionBrief}
-          descriptionFull={descriptionFull}
-          onExpand={() => logLessonExpand(id)}
-        />
-      )}
-
-      {ctaText && (
-        <FinalCTA text={ctaText} onClick={handleCTAClick} visible={showCTA} />
-      )}
     </div>
   );
 }

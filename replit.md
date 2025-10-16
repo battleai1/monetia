@@ -32,13 +32,23 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Drizzle ORM with DbStorage for persistent data storage
   - Debug endpoint for authentication status checking
 - ✅ **Video Interaction Controls**:
-  - Hold left/center of screen: pause video (visual pause icon appears)
-  - Hold right edge of screen: 2x speed playback (visual "2x" badge appears)
+  - Hold left/center of screen: pause video (no visual indicator)
+  - Hold right edge of screen: 2x speed playback (no visual indicator)
   - Pointer events with smooth animations via Framer Motion
 - ✅ **Share Sheet Integration**:
   - Custom bottom sheet for sharing instead of external redirect
   - Telegram chat link and share options
   - Dark themed with gradient icons
+- ✅ **Instagram Reels-style Comments System**:
+  - Synchronized animations: video scales to 88% and moves up (-100px) when comments open
+  - Video gets rounded corners (24px) during comments view
+  - Dark theme (#262626 background) matching Instagram aesthetic
+  - Drag handle at top for easy dismissal
+  - Centered "Comments" header with info button
+  - Emoji reactions bar (❤️ 🙌 🔥 👏 😢 😍 😮 😂) above input
+  - Comment input with emoji picker button
+  - Safe area padding for smartphone compatibility (bottom bar indicator)
+  - Spring animations (damping: 35, stiffness: 400) for smooth transitions
 
 ### Key Technical Decisions
 - ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
