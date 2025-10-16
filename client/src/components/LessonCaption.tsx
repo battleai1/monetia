@@ -52,24 +52,27 @@ export default function LessonCaption({ lessonId, brief, full, author, authorAva
           exit={{ opacity: 0 }}
           className="text-white"
         >
-          <p className="text-sm leading-relaxed mb-2 text-white/90" data-testid={`caption-brief-${lessonId}`}>
-            {isExpanded ? full : brief}
-          </p>
-          <button
-            onClick={toggleExpand}
-            className="flex items-center gap-1 text-xs text-white/70 hover-elevate active-elevate-2 px-2 py-1 rounded-md"
-            data-testid={`button-expand-${lessonId}`}
-          >
-            {isExpanded ? (
-              <>
-                скрыть <ChevronUp className="w-3 h-3" />
-              </>
-            ) : (
-              <>
-                ещё <ChevronDown className="w-3 h-3" />
-              </>
+          <p className="text-sm leading-relaxed text-white/90" data-testid={`caption-brief-${lessonId}`}>
+            {isExpanded ? full : brief}{' '}
+            {!isExpanded && (
+              <button
+                onClick={toggleExpand}
+                className="text-white/70 hover-elevate active-elevate-2"
+                data-testid={`button-expand-${lessonId}`}
+              >
+                ...
+              </button>
             )}
-          </button>
+          </p>
+          {isExpanded && (
+            <button
+              onClick={toggleExpand}
+              className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
+              data-testid={`button-collapse-${lessonId}`}
+            >
+              скрыть
+            </button>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

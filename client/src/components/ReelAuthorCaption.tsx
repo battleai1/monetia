@@ -63,23 +63,26 @@ export default function ReelAuthorCaption({
             {title}
           </h3>
           <p className="text-sm leading-relaxed text-white/90" data-testid={`description-${reelId}`}>
-            {isExpanded ? descriptionFull : descriptionBrief}
-          </p>
-          <button
-            onClick={toggleExpand}
-            className="flex items-center gap-1 text-xs text-white/70 hover-elevate active-elevate-2 px-2 py-1 rounded-md mt-1"
-            data-testid={`button-expand-${reelId}`}
-          >
-            {isExpanded ? (
-              <>
-                скрыть <ChevronUp className="w-3 h-3" />
-              </>
-            ) : (
-              <>
-                ещё <ChevronDown className="w-3 h-3" />
-              </>
+            {isExpanded ? descriptionFull : descriptionBrief}{' '}
+            {!isExpanded && (
+              <button
+                onClick={toggleExpand}
+                className="text-white/70 hover-elevate active-elevate-2"
+                data-testid={`button-expand-${reelId}`}
+              >
+                ...
+              </button>
             )}
-          </button>
+          </p>
+          {isExpanded && (
+            <button
+              onClick={toggleExpand}
+              className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
+              data-testid={`button-collapse-${reelId}`}
+            >
+              скрыть
+            </button>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
