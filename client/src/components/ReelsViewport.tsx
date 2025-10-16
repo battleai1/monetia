@@ -116,32 +116,31 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* Previous reel - динамическая позиция относительно индекса */}
+        {/* Previous reel - статичная позиция -100% */}
         {prevChild && (
           <div 
             key={`reel-${currentIndex - 1}`} 
             className="absolute inset-0 w-full h-full" 
-            style={{ transform: `translateY(${(currentIndex - 1) * 100}%)` }}
+            style={{ transform: 'translateY(-100%)' }}
           >
             {prevWithProps}
           </div>
         )}
 
-        {/* Current reel - динамическая позиция относительно индекса */}
+        {/* Current reel - статичная позиция 0 */}
         <div 
           key={`reel-${currentIndex}`} 
           className="absolute inset-0 w-full h-full"
-          style={{ transform: `translateY(${currentIndex * 100}%)` }}
         >
           {currentWithProps}
         </div>
 
-        {/* Next reel - динамическая позиция относительно индекса */}
+        {/* Next reel - статичная позиция 100% */}
         {nextChild && (
           <div 
             key={`reel-${currentIndex + 1}`} 
             className="absolute inset-0 w-full h-full" 
-            style={{ transform: `translateY(${(currentIndex + 1) * 100}%)` }}
+            style={{ transform: 'translateY(100%)' }}
           >
             {nextWithProps}
           </div>
