@@ -40,7 +40,7 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Telegram chat link and share options
   - Dark themed with gradient icons
 - ✅ **Instagram Reels-style Comments System**:
-  - Synchronized animations: video scales to 78% and moves up (-120px) when comments open
+  - Synchronized animations: video scales to 57% and moves down 45px when comments open
   - Video becomes clean vertical rectangle with rounded corners (28px)
   - All UI elements hide during comments view (FloatingActions, captions, CTA buttons)
   - Dark theme (#262626 background) matching Instagram aesthetic
@@ -50,6 +50,17 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Comment input with emoji picker button
   - Safe area padding for smartphone compatibility (bottom bar indicator)
   - Spring animations (damping: 35, stiffness: 400) for smooth transitions
+- ✅ **Responsive Design System**:
+  - Fully adaptive layout for all device sizes (mobile, tablet, desktop)
+  - Mobile (<1024px): Fullscreen vertical video experience without frame
+  - Desktop (≥1024px): iPhone 17 Pro Max mockup with dynamic scaling
+  - Automatic frame scaling: calculated as min(screenHeight * 0.92 / 932, screenWidth * 0.9 / 430, 1)
+  - CSS variables for responsive dimensions: --viewport-height, --viewport-width, --phone-scale
+  - Monetia logo scales proportionally with phone frame on desktop
+  - Responsive CSS utilities with clamp() for fluid text sizing (text-responsive-*)
+  - Tested and verified across iPhone SE, iPhone 13, iPad, small/large desktops
+  - No horizontal scroll on any device size
+  - Maintains visual fidelity of iPhone 17 Pro Max design across all screens
 
 ### Key Technical Decisions
 - ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
@@ -58,6 +69,13 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 - Text descriptions limited width (pr-16) to prevent overlap with floating buttons
 - Hook overlays auto-hide after 3 seconds
 - All interactive elements have data-testid attributes for testing
+- **Responsive Architecture**:
+  - PhoneFrame calculates optimal scale on window resize using viewport dimensions
+  - Desktop: Phone frame uses CSS transform scale(var(--phone-scale)) for crisp rendering
+  - Content container sized via CSS variables for consistent viewport dimensions
+  - Padding heuristics: 92% screen height, 90% screen width to ensure visibility
+  - Logo positioning derived from --phone-bottom CSS variable for alignment
+  - Mobile/tablet: Direct fullscreen rendering without intermediate containers
 
 ## User Preferences
 
