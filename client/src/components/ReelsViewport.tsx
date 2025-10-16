@@ -1,7 +1,8 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement, useRef, useEffect, useState } from 'react';
+import { cloneElement, isValidElement, useRef, useEffect } from 'react';
+import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -17,74 +18,56 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
   const y = useMotionValue(0);
   const animationRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const viewportHeight = useViewportHeight();
 
-  // Измеряем РЕАЛЬНУЮ высоту viewport контейнера
+  // Компенсируем смещение при смене индекса
   useEffect(() => {
-    const updateHeight = () => {
-      if (containerRef.current) {
-        const height = containerRef.current.offsetHeight;
-        setViewportHeight(height);
-      }
-    };
-
-    updateHeight();
-
-    const resizeObserver = new ResizeObserver(updateHeight);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+    const currentY = y.get();
+    if (currentY <= -viewportHeight || currentY >= viewportHeight) {
+      // Сброс после рендера через микротаску
+      Promise.resolve().then(() => {
+        y.set(0);
+      });
     }
+  }, [currentIndex, y, viewportHeight]);
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
-  // При изменении индекса - анимируем к новой позиции (БЕЗ СБРОСА!)
-  useEffect(() => {
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    // Отменяем предыдущую анимацию если есть
     if (animationRef.current) {
       animationRef.current.stop();
     }
     
-    const targetY = -currentIndex * viewportHeight;
-    
-    animationRef.current = animate(y, targetY, {
-      type: "spring",
-      stiffness: 400,
-      damping: 40,
-      restSpeed: 0.01,
-      restDelta: 0.01,
-      onComplete: () => {
-        animationRef.current = null;
-      }
-    });
-  }, [currentIndex, viewportHeight, y]);
-
-  const handleDragEnd = (_: any, info: PanInfo) => {
     const currentY = y.get();
-    const targetY = -currentIndex * viewportHeight;
-    const offset = currentY - targetY;
-    const threshold = viewportHeight * 0.3; // 30% от высоты экрана
+    const threshold = viewportHeight * 0.5; // 50% от высоты экрана
     
-    if (offset < -threshold && currentIndex < totalReels - 1) {
+    if (currentY < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео
-      goToNext();
-    } else if (offset > threshold && currentIndex > 0) {
-      // Свайп вниз - переход на предыдущее видео
-      goToPrev();
-    } else {
-      // Не достигли порога - возврат обратно к текущей позиции
-      if (animationRef.current) {
-        animationRef.current.stop();
-      }
-      
-      animationRef.current = animate(y, targetY, {
+      animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
-        stiffness: 400,
-        damping: 40,
-        restSpeed: 0.01,
-        restDelta: 0.01,
+        stiffness: 300,
+        damping: 30,
+        onComplete: () => {
+          goToNext();
+          animationRef.current = null;
+        }
+      });
+    } else if (currentY > threshold && currentIndex > 0) {
+      // Свайп вниз - переход на предыдущее видео
+      animationRef.current = animate(y, viewportHeight, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        onComplete: () => {
+          goToPrev();
+          animationRef.current = null;
+        }
+      });
+    } else {
+      // Не достигли порога - возврат обратно (от текущей позиции к 0)
+      animationRef.current = animate(y, 0, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
         onComplete: () => {
           animationRef.current = null;
         }
@@ -98,7 +81,18 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
   const handleVideoEnded = () => {
     if (currentIndex < totalReels - 1) {
-      goToNext();
+      if (animationRef.current) {
+        animationRef.current.stop();
+      }
+      animationRef.current = animate(y, -viewportHeight, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        onComplete: () => {
+          goToNext();
+          animationRef.current = null;
+        }
+      });
     }
   };
 
@@ -123,54 +117,41 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     : prevChild;
 
   return (
-    <div ref={containerRef} className="relative w-full h-viewport bg-black overflow-hidden">
+    <div className="relative w-full h-viewport bg-black overflow-hidden">
       <ProgressStrips
         total={totalReels}
         current={currentIndex}
         progress={getProgress(currentIndex)}
       />
 
-      {viewportHeight > 0 && (
-        <motion.div
-          drag="y"
-          dragConstraints={{ top: -viewportHeight * 2, bottom: viewportHeight * 2 }}
-          dragElastic={0}
-          onDragEnd={handleDragEnd}
-          style={{ y }}
-          className="relative w-full h-full"
-          data-testid="reels-viewport"
-        >
-          {/* Previous reel - статичная позиция -100% */}
-          {prevChild && (
-            <div 
-              key={`reel-${currentIndex - 1}`} 
-              className="absolute inset-0 w-full h-full" 
-              style={{ transform: 'translateY(-100%)' }}
-            >
-              {prevWithProps}
-            </div>
-          )}
-
-          {/* Current reel - статичная позиция 0 */}
-          <div 
-            key={`reel-${currentIndex}`} 
-            className="absolute inset-0 w-full h-full"
-          >
-            {currentWithProps}
+      <motion.div
+        drag="y"
+        dragConstraints={{ top: -viewportHeight * 1.2, bottom: viewportHeight * 1.2 }}
+        dragElastic={0.05}
+        onDragEnd={handleDragEnd}
+        style={{ y }}
+        className="relative w-full h-full"
+        data-testid="reels-viewport"
+      >
+        {/* Previous reel */}
+        {prevChild && (
+          <div key={`reel-${currentIndex - 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
+            {prevWithProps}
           </div>
+        )}
 
-          {/* Next reel - статичная позиция 100% */}
-          {nextChild && (
-            <div 
-              key={`reel-${currentIndex + 1}`} 
-              className="absolute inset-0 w-full h-full" 
-              style={{ transform: 'translateY(100%)' }}
-            >
-              {nextWithProps}
-            </div>
-          )}
-        </motion.div>
-      )}
+        {/* Current reel */}
+        <div key={`reel-${currentIndex}`} className="absolute inset-0 w-full h-full">
+          {currentWithProps}
+        </div>
+
+        {/* Next reel */}
+        {nextChild && (
+          <div key={`reel-${currentIndex + 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
+            {nextWithProps}
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }
