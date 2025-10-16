@@ -1,7 +1,7 @@
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useMotionValue } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement } from 'react';
+import { cloneElement, isValidElement, useState } from 'react';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -15,14 +15,16 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     onIndexChange,
   });
 
+  const [direction, setDirection] = useState(0);
   const y = useMotionValue(0);
-  const opacity = useTransform(y, [-100, 0, 100], [0.5, 1, 0.5]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const threshold = 50;
-    if (info.offset.y < -threshold) {
+    if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
+      setDirection(1);
       goToNext();
-    } else if (info.offset.y > threshold) {
+    } else if (info.offset.y > threshold && currentIndex > 0) {
+      setDirection(-1);
       goToPrev();
     }
   };
@@ -35,6 +37,18 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       })
     : currentChild;
 
+  const variants = {
+    enter: (direction: number) => ({
+      y: direction > 0 ? '100%' : '-100%',
+    }),
+    center: {
+      y: 0,
+    },
+    exit: (direction: number) => ({
+      y: direction > 0 ? '-100%' : '100%',
+    }),
+  };
+
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
       <ProgressStrips
@@ -43,17 +57,28 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         progress={getProgress(currentIndex)}
       />
 
-      <motion.div
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-        style={{ y, opacity }}
-        className="w-full h-full"
-        data-testid="reels-viewport"
-      >
-        {childWithProps}
-      </motion.div>
+      <AnimatePresence initial={false} custom={direction} mode="wait">
+        <motion.div
+          key={currentIndex}
+          custom={direction}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{
+            y: { type: "spring", stiffness: 300, damping: 30 },
+          }}
+          drag="y"
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.1}
+          onDragEnd={handleDragEnd}
+          style={{ y }}
+          className="absolute inset-0 w-full h-full"
+          data-testid="reels-viewport"
+        >
+          {childWithProps}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
