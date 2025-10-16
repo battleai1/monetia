@@ -38,8 +38,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          goToNext();
           y.set(0);
+          goToNext();
           animationRef.current = null;
         }
       });
@@ -50,8 +50,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          goToPrev();
           y.set(0);
+          goToPrev();
           animationRef.current = null;
         }
       });
@@ -82,8 +82,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         stiffness: 300,
         damping: 30,
         onComplete: () => {
-          goToNext();
           y.set(0);
+          goToNext();
           animationRef.current = null;
         }
       });
