@@ -28,8 +28,17 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Middleware protection for all API endpoints
   - Automatic user creation/update on first authentication
   - Authorization header-only validation (prevents request body injection attacks)
-  - User database with telegram_id, username, firstName, lastName
+  - PostgreSQL database with users table (telegram_id, username, firstName, lastName)
+  - Drizzle ORM with DbStorage for persistent data storage
   - Debug endpoint for authentication status checking
+- ✅ **Video Interaction Controls**:
+  - Hold left/center of screen: pause video (visual pause icon appears)
+  - Hold right edge of screen: 2x speed playback (visual "2x" badge appears)
+  - Pointer events with smooth animations via Framer Motion
+- ✅ **Share Sheet Integration**:
+  - Custom bottom sheet for sharing instead of external redirect
+  - Telegram chat link and share options
+  - Dark themed with gradient icons
 
 ### Key Technical Decisions
 - ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
@@ -86,11 +95,12 @@ Preferred communication style: Simple, everyday language.
 - API endpoints: POST /api/auth/telegram, GET /api/auth/me, GET /api/debug/auth-status
 
 **Data Layer**
-- In-memory storage implementation (MemStorage class) as default
-- Drizzle ORM configured for PostgreSQL migrations
+- PostgreSQL database with DbStorage implementation using Drizzle ORM
+- Neon serverless PostgreSQL for production-ready persistent storage
 - Schema definition in shared directory for type sharing between client/server
-- Storage interface pattern allows swapping implementations without changing application code
+- Storage interface pattern (IStorage) allows swapping implementations
 - Users table: telegramId (primary key), username, firstName, lastName, createdAt
+- Database operations: getUserByTelegramId, createUser, updateUser
 
 **Development Tools**
 - tsx for running TypeScript server code directly in development

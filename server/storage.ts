@@ -1,4 +1,6 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type User, type InsertUser, users } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUserByTelegramId(telegramId: number): Promise<User | undefined>;
@@ -6,41 +8,30 @@ export interface IStorage {
   updateUser(telegramId: number, userData: Partial<InsertUser>): Promise<User>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DbStorage implements IStorage {
   async getUserByTelegramId(telegramId: number): Promise<User | undefined> {
-    return this.users.get(telegramId);
+    const result = await db.select().from(users).where(eq(users.telegramId, telegramId));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = { 
-      telegramId: insertUser.telegramId,
-      username: insertUser.username ?? null,
-      firstName: insertUser.firstName ?? null,
-      lastName: insertUser.lastName ?? null,
-      createdAt: new Date()
-    };
-    this.users.set(user.telegramId, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   async updateUser(telegramId: number, userData: Partial<InsertUser>): Promise<User> {
-    const existingUser = this.users.get(telegramId);
-    if (!existingUser) {
+    const result = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.telegramId, telegramId))
+      .returning();
+    
+    if (!result[0]) {
       throw new Error("User not found");
     }
-    const updatedUser: User = { 
-      ...existingUser, 
-      ...userData 
-    };
-    this.users.set(telegramId, updatedUser);
-    return updatedUser;
+    
+    return result[0];
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();
