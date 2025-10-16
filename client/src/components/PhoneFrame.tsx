@@ -37,10 +37,10 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
 
   return (
     <>
-      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black">
-        <div className="relative">
+      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black z-10">
+        <div className="relative z-20">
           <div 
-            className="relative bg-black rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-slate-900"
+            className="relative bg-black rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-slate-900 z-30"
             style={{
               width: '430px',
               height: '932px',
