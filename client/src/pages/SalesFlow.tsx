@@ -11,7 +11,7 @@ export default function SalesFlow() {
   };
 
   return (
-    <div className="h-screen w-full bg-black">
+    <div className="h-viewport w-viewport bg-black">
       <ReelsViewport totalReels={salesReels.length}>
         {salesReels.map((reel) => (
           <ReelCard

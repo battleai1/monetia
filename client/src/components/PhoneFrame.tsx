@@ -1,10 +1,31 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface PhoneFrameProps {
   children: ReactNode;
 }
 
 export default function PhoneFrame({ children }: PhoneFrameProps) {
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      
+      const isDesktop = window.innerWidth >= 1024;
+      if (isDesktop) {
+        document.documentElement.style.setProperty('--viewport-height', '932px');
+        document.documentElement.style.setProperty('--viewport-width', '430px');
+      } else {
+        document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+        document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+      }
+    };
+    
+    setVH();
+    window.addEventListener('resize', setVH);
+    
+    return () => window.removeEventListener('resize', setVH);
+  }, []);
+
   return (
     <>
       <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -18,7 +39,13 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
           >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50"></div>
             
-            <div className="w-full h-full overflow-hidden bg-black">
+            <div 
+              className="w-full h-full overflow-hidden bg-black"
+              style={{
+                width: '430px',
+                height: '932px',
+              }}
+            >
               {children}
             </div>
           </div>

@@ -353,3 +353,11 @@
     inset: -1px;
   }
 }
+
+.h-viewport {
+  height: var(--viewport-height, 100vh);
+}
+
+.w-viewport {
+  width: var(--viewport-width, 100vw);
+}

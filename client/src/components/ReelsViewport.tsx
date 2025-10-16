@@ -2,6 +2,7 @@ import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
 import { cloneElement, isValidElement, useRef } from 'react';
+import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
@@ -17,6 +18,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
 
   const y = useMotionValue(0);
   const animationRef = useRef<any>(null);
+  const viewportHeight = useViewportHeight();
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
@@ -28,7 +30,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     
     if (info.offset.y < -threshold && currentIndex < totalReels - 1) {
       goToNext();
-      animationRef.current = animate(y, -window.innerHeight, {
+      animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -39,7 +41,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       });
     } else if (info.offset.y > threshold && currentIndex > 0) {
       goToPrev();
-      animationRef.current = animate(y, window.innerHeight, {
+      animationRef.current = animate(y, viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -70,7 +72,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       if (animationRef.current) {
         animationRef.current.stop();
       }
-      animationRef.current = animate(y, -window.innerHeight, {
+      animationRef.current = animate(y, -viewportHeight, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -103,7 +105,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     : prevChild;
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
+    <div className="relative w-full h-viewport bg-black overflow-hidden">
       <ProgressStrips
         total={totalReels}
         current={currentIndex}

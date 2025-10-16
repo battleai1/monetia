@@ -11,7 +11,7 @@ export default function TrainingFlow() {
   };
 
   return (
-    <div className="h-screen w-full bg-black">
+    <div className="h-viewport w-viewport bg-black">
       <ReelsViewport totalReels={lessons.length}>
         {lessons.map((lesson) => (
           <ReelCard
