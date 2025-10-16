@@ -6,9 +6,10 @@ interface FloatingActionsProps {
   onComment?: () => void;
   onShare?: () => void;
   onMenu?: () => void;
+  commentCount?: number;
 }
 
-export default function FloatingActions({ onLike, onComment, onShare, onMenu }: FloatingActionsProps) {
+export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23 }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(3214);
 
@@ -55,7 +56,7 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu }: 
         data-testid="button-comment"
       >
         <MessageCircle className="w-7 h-7 text-white" />
-        <span className="text-white text-xs font-medium">23</span>
+        <span className="text-white text-xs font-medium">{commentCount}</span>
       </button>
 
       <button

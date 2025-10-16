@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { BadgeCheck } from 'lucide-react';
 
 interface ReelAuthorCaptionProps {
   reelId: string;
@@ -32,16 +33,19 @@ export default function ReelAuthorCaption({
 
   return (
     <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-4 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-2 mb-2">
         <Avatar className="w-9 h-9 border-2 border-white/80">
           <AvatarImage src={authorAvatar} alt={author} />
           <AvatarFallback className="bg-purple-600 text-white text-xs">
             {author.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <span className="text-white font-semibold text-sm" data-testid={`author-${reelId}`}>
-          {author}
-        </span>
+        <div className="flex items-center gap-1">
+          <span className="text-white font-semibold text-sm" data-testid={`author-${reelId}`}>
+            {author}
+          </span>
+          <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
+        </div>
         <button
           onClick={() => console.log('Follow clicked')}
           className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"

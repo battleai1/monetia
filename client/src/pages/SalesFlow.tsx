@@ -29,6 +29,7 @@ export default function SalesFlow() {
             title={reel.title}
             descriptionBrief={reel.descriptionBrief}
             descriptionFull={reel.descriptionFull}
+            comments={reel.comments}
           />
         ))}
       </ReelsViewport>

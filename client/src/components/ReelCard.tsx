@@ -5,6 +5,7 @@ import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
 import LessonCaption from './LessonCaption';
 import ReelAuthorCaption from './ReelAuthorCaption';
+import CommentsSheet, { Comment } from './CommentsSheet';
 import { logReelView, logCTAShown, logCTAClick, logLessonExpand } from '@/lib/analytics';
 
 interface ReelCardProps {
@@ -26,6 +27,7 @@ interface ReelCardProps {
   title?: string;
   descriptionBrief?: string;
   descriptionFull?: string;
+  comments?: Comment[];
 }
 
 export default function ReelCard({
@@ -47,11 +49,13 @@ export default function ReelCard({
   title,
   descriptionBrief,
   descriptionFull,
+  comments = [],
 }: ReelCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const { isMuted } = useAppStore();
 
   useEffect(() => {
@@ -158,7 +162,17 @@ export default function ReelCard({
         )}
       </AnimatePresence>
 
-      <FloatingActions />
+      <FloatingActions 
+        onComment={() => setShowComments(true)}
+        commentCount={comments.length}
+      />
+
+      <CommentsSheet
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+        comments={comments}
+        commentCount={comments.length}
+      />
 
       {mode === 'training' && lessonBrief && lessonFull && (
         <LessonCaption 
