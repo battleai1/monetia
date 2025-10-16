@@ -23,8 +23,8 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   // Компенсируем смещение при смене индекса - используем layoutEffect для синхронного выполнения
   useLayoutEffect(() => {
     const currentY = y.get();
-    // Проверяем с учетом того, что анимация может идти до 1.05 * viewportHeight
-    if (Math.abs(currentY) >= viewportHeight * 0.95) {
+    // Проверяем с учетом того, что анимация может идти до 1.02 * viewportHeight
+    if (Math.abs(currentY) >= viewportHeight * 0.98) {
       // Сбрасываем синхронно перед отрисовкой браузером
       y.set(0);
     }
@@ -41,7 +41,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     
     if (currentY < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео (анимируем чуть дальше для гарантии)
-      animationRef.current = animate(y, -viewportHeight * 1.05, {
+      animationRef.current = animate(y, -viewportHeight * 1.02, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -52,7 +52,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       });
     } else if (currentY > threshold && currentIndex > 0) {
       // Свайп вниз - переход на предыдущее видео (анимируем чуть дальше для гарантии)
-      animationRef.current = animate(y, viewportHeight * 1.05, {
+      animationRef.current = animate(y, viewportHeight * 1.02, {
         type: "spring",
         stiffness: 300,
         damping: 30,
@@ -83,7 +83,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       if (animationRef.current) {
         animationRef.current.stop();
       }
-      animationRef.current = animate(y, -viewportHeight * 1.05, {
+      animationRef.current = animate(y, -viewportHeight * 1.02, {
         type: "spring",
         stiffness: 300,
         damping: 30,
