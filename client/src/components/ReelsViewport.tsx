@@ -38,7 +38,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     }
     
     const currentY = y.get();
-    const threshold = viewportHeight * 0.5; // 50% от высоты экрана
+    const threshold = viewportHeight * 0.3; // 30% от высоты экрана
     
     if (currentY < -threshold && currentIndex < totalReels - 1) {
       // Свайп вверх - переход на следующее видео
