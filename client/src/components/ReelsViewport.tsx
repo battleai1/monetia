@@ -1,7 +1,7 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement, useRef, useEffect } from 'react';
+import { cloneElement, isValidElement, useRef, useEffect, useLayoutEffect } from 'react';
 import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ReelsViewportProps {
@@ -20,14 +20,12 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
 
-  // Компенсируем смещение при смене индекса
-  useEffect(() => {
+  // Компенсируем смещение при смене индекса - используем layoutEffect для синхронного выполнения
+  useLayoutEffect(() => {
     const currentY = y.get();
     if (currentY <= -viewportHeight || currentY >= viewportHeight) {
-      // Сброс после рендера через микротаску
-      Promise.resolve().then(() => {
-        y.set(0);
-      });
+      // Сбрасываем синхронно перед отрисовкой браузером
+      y.set(0);
     }
   }, [currentIndex, y, viewportHeight]);
 
