@@ -30,9 +30,10 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
     
     animationRef.current = animate(y, targetY, {
       type: "spring",
-      stiffness: 320,
-      damping: 32,
-      restDelta: 0.1,
+      stiffness: 400,
+      damping: 40,
+      restSpeed: 0.01,
+      restDelta: 0.01,
       onComplete: () => {
         animationRef.current = null;
       }
@@ -59,9 +60,10 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       
       animationRef.current = animate(y, targetY, {
         type: "spring",
-        stiffness: 320,
-        damping: 32,
-        restDelta: 0.1,
+        stiffness: 400,
+        damping: 40,
+        restSpeed: 0.01,
+        restDelta: 0.01,
         onComplete: () => {
           animationRef.current = null;
         }
