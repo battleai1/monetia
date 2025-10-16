@@ -23,6 +23,13 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 - ✅ Progress strips showing current reel position (n/N)
 - ✅ Telegram WebApp integration (haptic feedback, MainButton, deep links)
 - ✅ Analytics tracking (console-based, ready for production service integration)
+- ✅ **Secure Telegram Authentication System**:
+  - HMAC-SHA256 validation of Telegram initData using bot token
+  - Middleware protection for all API endpoints
+  - Automatic user creation/update on first authentication
+  - Authorization header-only validation (prevents request body injection attacks)
+  - User database with telegram_id, username, firstName, lastName
+  - Debug endpoint for authentication status checking
 
 ### Key Technical Decisions
 - ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
@@ -70,11 +77,20 @@ Preferred communication style: Simple, everyday language.
 - Custom middleware for request logging and error handling
 - Development mode includes Vite middleware for HMR
 
+**Authentication & Security**
+- Telegram WebApp authentication using HMAC-SHA256 validation
+- Bot token stored securely in TELEGRAM_BOT_TOKEN environment variable
+- Middleware validates initData from Authorization header only (prevents injection attacks)
+- Automatic user creation/update on first authentication
+- 24-hour validity window for authentication data
+- API endpoints: POST /api/auth/telegram, GET /api/auth/me, GET /api/debug/auth-status
+
 **Data Layer**
 - In-memory storage implementation (MemStorage class) as default
 - Drizzle ORM configured for PostgreSQL migrations
 - Schema definition in shared directory for type sharing between client/server
 - Storage interface pattern allows swapping implementations without changing application code
+- Users table: telegramId (primary key), username, firstName, lastName, createdAt
 
 **Development Tools**
 - tsx for running TypeScript server code directly in development
