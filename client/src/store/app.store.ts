@@ -8,7 +8,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  isMuted: true,
+  isMuted: false,
   toggleMute: () => set((state) => ({ isMuted: !state.isMuted })),
   currentFlow: 'sales',
   setCurrentFlow: (flow) => set({ currentFlow: flow }),

@@ -1,5 +1,6 @@
 import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import ShareSheet from './ShareSheet';
 
 interface FloatingActionsProps {
   onLike?: () => void;
@@ -13,6 +14,7 @@ interface FloatingActionsProps {
 export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, reelId }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(3214);
+  const [showShareSheet, setShowShareSheet] = useState(false);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -28,14 +30,7 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
 
   const handleShare = () => {
     console.log('Share clicked');
-    if (window.Telegram?.WebApp) {
-      const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
-      const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
-      
-      window.Telegram.WebApp.openLink(
-        `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`
-      );
-    }
+    setShowShareSheet(true);
     onShare?.();
   };
 
@@ -45,47 +40,55 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
   };
 
   return (
-    <div className="absolute right-3 bottom-24 z-40 flex flex-col items-center gap-4">
-      <button
-        onClick={handleLike}
-        className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
-        aria-label="Like"
-        data-testid="button-like"
-      >
-        <Heart 
-          className={`w-7 h-7 transition-colors ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`}
-        />
-        <span className="text-white text-xs font-medium">{likeCount.toLocaleString()}</span>
-      </button>
+    <>
+      <div className="absolute right-3 bottom-24 z-40 flex flex-col items-center gap-4">
+        <button
+          onClick={handleLike}
+          className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
+          aria-label="Like"
+          data-testid="button-like"
+        >
+          <Heart 
+            className={`w-7 h-7 transition-colors ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`}
+          />
+          <span className="text-white text-xs font-medium">{likeCount.toLocaleString()}</span>
+        </button>
 
-      <button
-        onClick={handleComment}
-        className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
-        aria-label="Comment"
-        data-testid="button-comment"
-      >
-        <MessageCircle className="w-7 h-7 text-white" />
-        <span className="text-white text-xs font-medium">{commentCount}</span>
-      </button>
+        <button
+          onClick={handleComment}
+          className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
+          aria-label="Comment"
+          data-testid="button-comment"
+        >
+          <MessageCircle className="w-7 h-7 text-white" />
+          <span className="text-white text-xs font-medium">{commentCount}</span>
+        </button>
 
-      <button
-        onClick={handleShare}
-        className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
-        aria-label="Share"
-        data-testid="button-share"
-      >
-        <Send className="w-7 h-7 text-white" />
-        <span className="text-white text-xs font-medium">2.2K</span>
-      </button>
+        <button
+          onClick={handleShare}
+          className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
+          aria-label="Share"
+          data-testid="button-share"
+        >
+          <Send className="w-7 h-7 text-white" />
+          <span className="text-white text-xs font-medium">2.2K</span>
+        </button>
 
-      <button
-        onClick={handleMenu}
-        className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
-        aria-label="More options"
-        data-testid="button-menu"
-      >
-        <MoreHorizontal className="w-7 h-7 text-white" />
-      </button>
-    </div>
+        <button
+          onClick={handleMenu}
+          className="flex flex-col items-center gap-0.5 hover-elevate active-elevate-2 p-1"
+          aria-label="More options"
+          data-testid="button-menu"
+        >
+          <MoreHorizontal className="w-7 h-7 text-white" />
+        </button>
+      </div>
+
+      <ShareSheet 
+        isOpen={showShareSheet} 
+        onClose={() => setShowShareSheet(false)}
+        reelId={reelId}
+      />
+    </>
   );
 }
