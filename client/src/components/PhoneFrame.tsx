@@ -17,10 +17,15 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
         // Calculate phone center position for desktop
         const phoneLeft = `calc(50vw - 201px)`; // center of screen - half of phone width
         document.documentElement.style.setProperty('--phone-left', phoneLeft);
+        // Calculate bottom position: (screen height - phone height) / 2
+        const phoneHeight = 932; // iPhone frame total height with border
+        const phoneBottom = `calc((100vh - ${phoneHeight}px) / 2)`;
+        document.documentElement.style.setProperty('--phone-bottom', phoneBottom);
       } else {
         document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
         document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
         document.documentElement.style.setProperty('--phone-left', '0px');
+        document.documentElement.style.setProperty('--phone-bottom', '0px');
       }
     };
     
