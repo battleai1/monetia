@@ -37,47 +37,58 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
 
   return (
     <>
-      <div className="hidden lg:flex fixed inset-0 items-center justify-center bg-black z-[100] isolate">
-        <div className="relative z-50">
-          {/* iPhone Frame with overflow hidden */}
-          <div 
-            className="relative bg-black rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-slate-900 z-50"
-            style={{
-              width: '430px',
-              height: '932px',
-            }}
-          >
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-full shadow-lg z-[60]"></div>
-            
-            <div 
-              className="w-full h-full overflow-hidden bg-black flex justify-center"
-            >
-              <div style={{ width: '402px', height: '880px' }} className="overflow-visible bg-black">
-                {children}
-              </div>
-            </div>
-          </div>
-          
-          {/* iPhone buttons */}
-          <div className="absolute -right-1 top-32 w-1 h-12 bg-slate-900 rounded-l"></div>
-          <div className="absolute -right-1 top-52 w-1 h-16 bg-slate-900 rounded-l"></div>
-          <div className="absolute -right-1 top-72 w-1 h-16 bg-slate-900 rounded-l"></div>
-          <div className="absolute -left-1 top-28 w-1 h-8 bg-slate-900 rounded-r"></div>
-          <div className="absolute -left-1 top-40 w-1 h-20 bg-slate-900 rounded-r"></div>
-          
-          {/* Bottom mask - covers the area below the phone to hide the comments sheet */}
-          <div 
-            className="absolute left-0 right-0 bg-black pointer-events-none z-[60]"
-            style={{ 
-              top: '932px',
-              height: 'calc(100vh - ((100vh - 932px) / 2) - 932px)',
-            }}
-          ></div>
-        </div>
-      </div>
-
+      {/* Mobile: render children directly */}
       <div className="lg:hidden w-full h-full">
         {children}
+      </div>
+
+      {/* Desktop: render children first, then frame on top */}
+      <div className="hidden lg:block">
+        {/* Background */}
+        <div className="fixed inset-0 bg-black z-[1]"></div>
+        
+        {/* Content container - positioned in center */}
+        <div className="fixed inset-0 flex items-center justify-center z-[2] pointer-events-none">
+          <div 
+            style={{ width: '402px', height: '880px' }} 
+            className="pointer-events-auto"
+          >
+            {children}
+          </div>
+        </div>
+        
+        {/* iPhone Frame - rendered AFTER children, higher z-index */}
+        <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
+          <div className="relative">
+            {/* iPhone Frame border */}
+            <div 
+              className="relative bg-transparent rounded-[3rem] border-[14px] border-slate-900 pointer-events-none"
+              style={{
+                width: '430px',
+                height: '932px',
+              }}
+            >
+              {/* Dynamic Island */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-full shadow-lg"></div>
+            </div>
+            
+            {/* iPhone buttons */}
+            <div className="absolute -right-1 top-32 w-1 h-12 bg-slate-900 rounded-l"></div>
+            <div className="absolute -right-1 top-52 w-1 h-16 bg-slate-900 rounded-l"></div>
+            <div className="absolute -right-1 top-72 w-1 h-16 bg-slate-900 rounded-l"></div>
+            <div className="absolute -left-1 top-28 w-1 h-8 bg-slate-900 rounded-r"></div>
+            <div className="absolute -left-1 top-40 w-1 h-20 bg-slate-900 rounded-r"></div>
+            
+            {/* Bottom mask - covers the area below the phone */}
+            <div 
+              className="absolute left-0 right-0 bg-black"
+              style={{ 
+                top: '932px',
+                height: 'calc(100vh - ((100vh - 932px) / 2) - 932px)',
+              }}
+            ></div>
+          </div>
+        </div>
       </div>
     </>
   );

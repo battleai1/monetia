@@ -73,9 +73,8 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             transition={{ type: 'spring', damping: 35, stiffness: 400 }}
             className="fixed bottom-0 lg:bottom-[var(--phone-bottom)] left-0 right-0 lg:left-[var(--phone-left)] lg:right-auto lg:w-[402px] bg-[#262626] rounded-t-3xl max-h-[75vh] lg:max-h-[660px] flex flex-col pb-safe lg:pb-0"
             style={{ 
-              zIndex: isDesktop ? 40 : 50,
-              willChange: 'transform',
-              transform: 'translateZ(0)'
+              ...(isDesktop ? {} : { zIndex: 50 }),
+              willChange: 'transform'
             }}
             data-testid="comments-sheet"
           >
