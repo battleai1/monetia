@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 interface ProgressStripsProps {
   total: number;
   current: number;
@@ -5,8 +7,25 @@ interface ProgressStripsProps {
 }
 
 export default function ProgressStrips({ total, current, progress }: ProgressStripsProps) {
+  const [isMobileTelegram, setIsMobileTelegram] = useState(false);
+
+  useEffect(() => {
+    // Проверяем, что мы в Telegram WebApp на мобильном устройстве
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    const isTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+    
+    setIsMobileTelegram(isMobile && !!isTelegram);
+  }, []);
+
   return (
-    <div className="absolute top-0 left-0 right-0 z-50 px-4 pt-safe pt-2 pb-2">
+    <div 
+      className="absolute top-0 left-0 right-0 z-50 px-4 pt-2 pb-2"
+      style={{
+        paddingTop: isMobileTelegram ? '52px' : undefined,
+      }}
+    >
       <div className="flex gap-1 mb-2">
         {Array.from({ length: total }).map((_, index) => (
           <div

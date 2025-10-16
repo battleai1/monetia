@@ -40,7 +40,7 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Telegram chat link and share options
   - Dark themed with gradient icons
 - ✅ **Instagram Reels-style Comments System**:
-  - Synchronized animations: video scales to 78% and moves up (-120px) when comments open
+  - Synchronized animations: video scales to 57% and moves down 45px when comments open
   - Video becomes clean vertical rectangle with rounded corners (28px)
   - All UI elements hide during comments view (FloatingActions, captions, CTA buttons)
   - Dark theme (#262626 background) matching Instagram aesthetic
@@ -50,6 +50,10 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Comment input with emoji picker button
   - Safe area padding for smartphone compatibility (bottom bar indicator)
   - Spring animations (damping: 35, stiffness: 400) for smooth transitions
+- ✅ **Mobile Telegram WebApp Optimization**:
+  - Progress bar automatically adapts position for mobile Telegram WebApp
+  - 52px top padding on mobile devices to avoid overlapping with native Telegram UI (close button, etc.)
+  - Desktop and browser versions maintain default positioning
 
 ### Key Technical Decisions
 - ReelsViewport uses cloneElement to pass isActive and onProgress props to active reel only
