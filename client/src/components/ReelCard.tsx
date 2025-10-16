@@ -166,7 +166,7 @@ export default function ReelCard({
   };
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden">
+    <div className="relative w-full h-full bg-black overflow-hidden lg:overflow-visible">
       <motion.div
         className="relative w-full h-full origin-top"
         animate={showComments ? {
