@@ -6,14 +6,10 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 
 ## Recent Changes (October 2025)
 
-### Video Preloading System (October 17, 2025)
-- ✅ Created `useVideoPreloader` hook for sequential HLS video preloading
-- ✅ Videos preload during countdown animation (~7.6s window in SalesFlow)
-- ✅ First video buffers 58.9s in <1 second using HLS.js manifest parsing
-- ✅ Integrated in SalesFlow (starts during countdown) and TrainingFlow (starts on mount)
-- ✅ Duplicate URL detection prevents re-downloading same videos
-- ✅ Performance: Instant playback after countdown, no loading delays on swipe
-- ✅ Console logging: `[VideoPreloader] Video N buffered Xs` for monitoring
+### Video Preloading System (October 17, 2025) - DEPRECATED
+- ~~Created `useVideoPreloader` hook for sequential HLS video preloading~~
+- ❌ **REMOVED**: Caused audio duplication issues by creating additional HLS instances
+- ❌ Replaced by new single-instance architecture (see Video Playback Architecture Rewrite)
 
 ### Redis Caching System (October 17, 2025)
 - ✅ Installed `ioredis` client for Redis connectivity
@@ -31,18 +27,19 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
 - ✅ Bot must be admin in target channel to auto-approve join requests
 
-### HLS Audio Duplication Fix - Final Resolution (October 17, 2025)
-- ✅ **Completely resolved** critical audio duplication bug affecting all video playback
-- ✅ Root cause identified: ReelsViewport renders 3 videos simultaneously (prev/current/next), all creating HLS instances
-- ✅ Previous attempts failed because `isActive` dependency caused HLS recreation during swipes
-- ✅ **Final solution**: Rewrote `useHLS` hook to create HLS instance EXACTLY ONCE per component
-  - Single guard: `if (!hlsRef.current)` prevents multiple instantiations
-  - Zero dependencies on `isActive` - removed from useEffect deps entirely
-  - Cleanup ONLY on component unmount or videoUrl change
-  - Inactive reels stay paused via separate `isActive` effect in ReelCard
-- ✅ Simplified playback speed: Only mutates `video.playbackRate`, no pause/play cycles
-- ✅ Performance: Zero HLS reinitializations during normal usage, single instance per video
-- ✅ Memory: Proper cleanup prevents HLS instance leaks during reel navigation
+### Video Playback Architecture Rewrite (October 17, 2025)
+- ✅ **Complete rewrite** of video playback system to eliminate audio duplication bugs
+- ✅ **New Architecture**: Single video element + single HLS instance shared across all reels
+  - `HlsManager` class: Manages single HLS.js instance, reuses it via `loadSource()` for different videos
+  - `VideoPlaybackProvider`: React context managing playback state and HLS lifecycle
+  - `VideoPlayerShell`: Single `<video>` element rendered once, positioned behind all reel overlays
+  - `ReelOverlay`: Presentational component for UI (hooks, captions, CTA, comments) - no video logic
+  - `ReelsViewport`: Orchestrates swipe navigation and overlay positioning
+- ✅ **Guarantees**: Physically impossible to have audio duplication (only one video/HLS exists)
+- ✅ **Performance**: Zero HLS reinitializations on swipes, instant source switching
+- ✅ **Memory**: Single HLS instance throughout app lifecycle, proper cleanup on unmount
+- ✅ **Removed**: `useHLS` hook, old `ReelCard` component, `useVideoPreloader` (caused duplication)
+- ✅ **Integration**: forcePlayActive() for post-countdown mobile autoplay, muted state sync from global store
 
 ## User Preferences
 
