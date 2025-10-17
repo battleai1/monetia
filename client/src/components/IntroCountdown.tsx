@@ -21,12 +21,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
 
   useEffect(() => {
     if (hasShown.current) return;
-    
-    const seen = localStorage.getItem(STORAGE_KEY);
-    if (seen) {
-      onComplete();
-      return;
-    }
 
     hasShown.current = true;
     setIsVisible(true);
@@ -60,7 +54,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     
     // Fade out
     setIsVisible(false);
-    localStorage.setItem(STORAGE_KEY, '1');
     
     setTimeout(() => {
       onComplete();
@@ -69,7 +62,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
 
   const handleSkip = () => {
     setIsVisible(false);
-    localStorage.setItem(STORAGE_KEY, '1');
     setTimeout(() => {
       onComplete();
     }, 300);

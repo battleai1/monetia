@@ -9,6 +9,7 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 ### Latest Updates
 - ✅ **Intro Countdown Animation** (Стартовый отсчёт) - ОБНОВЛЕНО:
   - Полноэкранный обратный отсчёт 5→4→3→2→1 перед первым видео (чёрный фон)
+  - **Показывается при КАЖДОМ открытии приложения** (localStorage отключён)
   - **Плавная анимация 60+ FPS** с GPU-ускорением (transform, backfaceVisibility)
   - **Драматичная анимация цифр**: 
     - scale: 0.5→1.0→1.0→1.2→4.0 (мощное увеличение и рассеивание)
@@ -19,7 +20,6 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Хэптики через Telegram WebApp API (medium на 5-2, heavy на 1)
   - **Последовательность**: таймер → "Ты готов(а)?" (1с) → видео запускается
   - Видео НЕ рендерится до завершения countdown (showCountdown контролирует)
-  - Сохранение в localStorage (показывается только при первом запуске)
   - Кнопка "Пропустить" в правом верхнем углу
   - Поддержка prefers-reduced-motion (упрощённая анимация без scale/blur)
   - Доступность: aria-live для объявления цифр
