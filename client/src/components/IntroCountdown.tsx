@@ -32,8 +32,9 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     // Отсчёт 5→4→3→2→1
     for (let i = 0; i < DIGITS.length; i++) {
       const digit = DIGITS[i];
-      const nextDigitValue = i < DIGITS.length - 1 ? DIGITS[i + 1] : null;
       
+      // Очищаем старую nextDigit перед установкой новой currentDigit
+      setNextDigit(null);
       setCurrentDigit(digit);
       
       // Хэптик и вибрация СРАЗУ при появлении цифры
@@ -49,10 +50,10 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
         }
       }
 
-      // Показываем СЛЕДУЮЩУЮ цифру на фоне во время взрыва (через 700ms)
-      if (nextDigitValue !== null) {
+      // Показываем СЛЕДУЮЩУЮ цифру на фоне в момент "попа" (через 700ms)
+      if (i < DIGITS.length - 1) {
         setTimeout(() => {
-          setNextDigit(nextDigitValue);
+          setNextDigit(DIGITS[i + 1]);
         }, 700);
       }
 
@@ -62,12 +63,12 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
       setCurrentDigit(null);
     }
     
-    // Убираем последнюю nextDigit если осталась
+    // Убираем последнюю nextDigit
     setNextDigit(null);
     
-    // Показываем "Ты готов(а)?" на 2 секунды
+    // Показываем "Ты готов(а)?" на 2.5 секунды
     setShowReadyText(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 2500));
     
     // Fade out
     setIsVisible(false);
