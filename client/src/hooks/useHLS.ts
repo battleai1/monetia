@@ -4,7 +4,14 @@ import Hls from 'hls.js';
 export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const isActiveRef = useRef(isActive);
+  
+  // Обновляем ref при изменении isActive (БЕЗ перезапуска эффекта)
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
 
+  // Создаём HLS ОДИН РАЗ при монтировании, ТОЛЬКО если активно
   useEffect(() => {
     const video = videoRef.current;
     if (!video) {
@@ -12,18 +19,17 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       return;
     }
 
-    const isHLS = videoUrl.includes('.m3u8');
-    console.log('[useHLS] Effect running -', videoId, 'isActive:', isActive, 'hasHLS:', !!hlsRef.current);
-    
     // НЕ создаём HLS для неактивных видео
-    if (!isActive) {
-      console.log('[useHLS] SKIP inactive', videoId);
+    if (!isActiveRef.current) {
+      console.log('[useHLS] SKIP - not active on mount', videoId);
       return;
     }
+
+    const isHLS = videoUrl.includes('.m3u8');
+    console.log('[useHLS] Mount effect -', videoId, 'creating HLS instance');
     
     if (isHLS) {
       if (Hls.isSupported()) {
-        // Создаём HLS ТОЛЬКО если активно И ещё нет instance
         if (!hlsRef.current) {
           console.log('[useHLS] ✅ CREATE HLS', videoId);
           const hls = new Hls({
@@ -57,8 +63,6 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
               }
             }
           });
-        } else {
-          console.log('[useHLS] ♻️ REUSE HLS', videoId);
         }
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('[useHLS] Native HLS', videoId);
@@ -69,7 +73,7 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       video.src = videoUrl;
     }
 
-    // Cleanup ТОЛЬКО при unmount компонента
+    // Cleanup ТОЛЬКО при unmount компонента или смене videoUrl
     return () => {
       if (hlsRef.current) {
         console.log('[useHLS] 🗑️ DESTROY', videoId);
@@ -77,7 +81,7 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
         hlsRef.current = null;
       }
     };
-  }, [videoUrl, isActive, videoId]);
+  }, [videoUrl, videoId]);
 
   return videoRef;
 }
