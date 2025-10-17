@@ -11,12 +11,14 @@ export function useHLS(videoUrl: string, isActive: boolean = true) {
 
     const isHLS = videoUrl.includes('.m3u8');
     
+    console.log('[HLS] useEffect triggered - isActive:', isActive, 'hlsRef exists:', !!hlsRef.current, 'videoUrl:', videoUrl.substring(videoUrl.length - 20));
+    
     // КРИТИЧНО: Инициализируем HLS ТОЛЬКО для активного видео!
     if (isHLS && isActive) {
       if (Hls.isSupported()) {
         // Только создаем новый HLS если его еще нет
         if (!hlsRef.current) {
-          console.log('[HLS] Initializing HLS.js for:', videoUrl);
+          console.log('[HLS] Creating NEW HLS instance for:', videoUrl);
           
           const hls = new Hls({
             enableWorker: true,
@@ -52,11 +54,13 @@ export function useHLS(videoUrl: string, isActive: boolean = true) {
               }
             }
           });
+        } else {
+          console.log('[HLS] HLS instance already exists, reusing');
         }
         
         return () => {
           // Уничтожаем HLS при размонтировании или когда видео становится неактивным
-          console.log('[HLS] Cleaning up HLS instance');
+          console.log('[HLS] CLEANUP called - destroying HLS');
           if (hlsRef.current) {
             if (video) {
               video.pause();
@@ -75,8 +79,10 @@ export function useHLS(videoUrl: string, isActive: boolean = true) {
       }
     } else if (!isHLS) {
       video.src = videoUrl;
+    } else {
+      console.log('[HLS] Skipping HLS init - isActive is false');
     }
-  }, [videoUrl, isActive]); // Добавил isActive обратно!
+  }, [videoUrl, isActive]);
 
   return videoRef;
 }
