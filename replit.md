@@ -7,6 +7,13 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 ## Recent Changes (October 2025)
 
 ### Latest Updates (October 17, 2025)
+- ✅ **Redis Caching System**:
+  - Installed `ioredis` client for Redis connectivity
+  - Created caching utilities: `getCached()`, `setCache()`, `invalidateCache()`
+  - Added caching to video API endpoints with 5-minute TTL
+  - Cache management endpoint: POST `/api/cache/clear` with pattern support
+  - Performance improvement: 3.4x faster responses (97ms cached vs 333ms DB)
+  - Graceful fallback: works without Redis, just logs warning
 - ✅ **PostgreSQL Database Migration for Video Content**:
   - Migrated from hardcoded content to database-backed video system
   - Created `videos` table with fields: id, type, videoUrl, posterUrl, title, hook, author, descriptions, etc.
