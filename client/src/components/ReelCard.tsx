@@ -88,18 +88,28 @@ export default function ReelCard({
         video.poster = '';
       }
       
-      // Попытка автозапуска видео
-      const playPromise = video.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Если не получилось запустить со звуком, пробуем с muted
-          console.log('[Video] Autoplay blocked, trying with muted:', error.message);
-          video.muted = true;
-          video.play().catch(err => {
-            console.error('[Video] Failed to play even with muted:', err);
+      // Даём HLS время на загрузку (особенно важно для первого видео)
+      const attemptPlay = () => {
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            // Если не получилось запустить со звуком, пробуем с muted
+            console.log('[Video] Autoplay blocked, trying with muted:', error.message);
+            video.muted = true;
+            video.play().catch(err => {
+              console.error('[Video] Failed to play even with muted:', err);
+            });
           });
-        });
+        }
+      };
+      
+      // Для надёжности даём 300ms на загрузку HLS
+      if (video.readyState < 2) {
+        video.addEventListener('loadeddata', attemptPlay, { once: true });
+        setTimeout(attemptPlay, 300); // Fallback timeout
+      } else {
+        attemptPlay();
       }
     } else {
       console.log('[ReelCard] ⏸️ PAUSE -', id);

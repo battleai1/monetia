@@ -32,11 +32,6 @@ class HLSManager {
       hls.loadSource(videoUrl);
       hls.attachMedia(video);
       
-      // Ждём загрузки манифеста перед установкой
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        this.currentVideoId = videoId;
-      });
-      
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           this.destroyCurrent();
@@ -45,6 +40,7 @@ class HLSManager {
       
       this.currentHls = hls;
       this.currentVideo = video;
+      this.currentVideoId = videoId; // Устанавливаем сразу!
     } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = videoUrl;
       this.currentVideoId = videoId;
