@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 
-export function useHLS(videoUrl: string, enabled: boolean = true) {
+export function useHLS(videoUrl: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 

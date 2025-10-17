@@ -60,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useHLS(videoUrl, isActive);
+  const videoRef = useHLS(videoUrl);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
