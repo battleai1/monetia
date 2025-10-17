@@ -60,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useHLS(videoUrl);
+  const videoRef = useHLS(videoUrl, isActive);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
@@ -206,31 +206,11 @@ export default function ReelCard({
     const video = videoRef.current;
     if (!video) return;
 
+    // Просто меняем скорость - всё!
     if (isHoldingSpeed) {
-      console.log('[Speed] Changing to 2x, paused:', video.paused, 'ended:', video.ended);
       video.playbackRate = 2.0;
     } else {
-      console.log('[Speed] Changing to 1x, paused:', video.paused, 'ended:', video.ended);
-      
-      // Сохраняем текущее время и состояние
-      const wasPlaying = !video.paused;
-      const currentTime = video.currentTime;
-      
-      // Паузим видео чтобы очистить audio buffers
-      video.pause();
-      
-      // Меняем скорость
       video.playbackRate = 1.0;
-      
-      // Возобновляем если было запущено
-      if (wasPlaying && !video.ended) {
-        // Небольшая задержка чтобы убедиться что audio buffers очистились
-        setTimeout(() => {
-          console.log('[Speed] Resuming playback at 1x');
-          video.currentTime = currentTime; // Восстанавливаем позицию
-          video.play().catch((e) => console.error('[Speed] Resume failed:', e));
-        }, 50);
-      }
     }
   }, [isHoldingSpeed]);
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 
-export function useHLS(videoUrl: string) {
+export function useHLS(videoUrl: string, isActive: boolean = true) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -11,9 +11,10 @@ export function useHLS(videoUrl: string) {
 
     const isHLS = videoUrl.includes('.m3u8');
     
-    if (isHLS) {
+    // КРИТИЧНО: Инициализируем HLS ТОЛЬКО для активного видео!
+    if (isHLS && isActive) {
       if (Hls.isSupported()) {
-        // Только создаем новый HLS если его еще нет или изменился URL
+        // Только создаем новый HLS если его еще нет
         if (!hlsRef.current) {
           console.log('[HLS] Initializing HLS.js for:', videoUrl);
           
@@ -54,10 +55,9 @@ export function useHLS(videoUrl: string) {
         }
         
         return () => {
-          // Уничтожаем HLS ТОЛЬКО при размонтировании компонента или смене videoUrl
+          // Уничтожаем HLS при размонтировании или когда видео становится неактивным
           console.log('[HLS] Cleaning up HLS instance');
           if (hlsRef.current) {
-            // Останавливаем видео перед уничтожением HLS
             if (video) {
               video.pause();
               video.removeAttribute('src');
@@ -73,10 +73,10 @@ export function useHLS(videoUrl: string) {
       } else {
         console.error('[HLS] HLS is not supported in this browser');
       }
-    } else {
+    } else if (!isHLS) {
       video.src = videoUrl;
     }
-  }, [videoUrl]); // Убрал enabled из зависимостей!
+  }, [videoUrl, isActive]); // Добавил isActive обратно!
 
   return videoRef;
 }
