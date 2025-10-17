@@ -9,23 +9,20 @@ class HLSManager {
 
   // Устанавливаем HLS для активного видео
   setActiveVideo(video: HTMLVideoElement, videoUrl: string, videoId: string) {
-    // Если уже есть HLS для другого видео - уничтожаем
-    if (this.currentHls && this.currentVideoId !== videoId) {
-      console.log('[HLSManager] Switching from', this.currentVideoId, 'to', videoId);
-      this.destroyCurrent();
+    // Если уже установлен для этого видео И это тот же video element - ничего не делаем
+    if (this.currentVideoId === videoId && this.currentVideo === video && this.currentHls) {
+      return;
     }
 
-    // Если уже установлен для этого видео - ничего не делаем
-    if (this.currentVideoId === videoId && this.currentHls) {
-      console.log('[HLSManager] Already active for', videoId);
-      return;
+    // Если уже есть HLS для другого видео - уничтожаем
+    if (this.currentHls && this.currentVideoId !== videoId) {
+      this.destroyCurrent();
     }
 
     // Создаём новый HLS
     const isHLS = videoUrl.includes('.m3u8');
     
     if (isHLS && Hls.isSupported()) {
-      console.log('[HLSManager] Creating HLS for', videoId);
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
@@ -35,15 +32,18 @@ class HLSManager {
       hls.loadSource(videoUrl);
       hls.attachMedia(video);
       
+      // Ждём загрузки манифеста перед установкой
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        this.currentVideoId = videoId;
+      });
+      
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
-          console.error('[HLSManager] Fatal error for', videoId, data.type);
           this.destroyCurrent();
         }
       });
       
       this.currentHls = hls;
-      this.currentVideoId = videoId;
       this.currentVideo = video;
     } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = videoUrl;
@@ -59,7 +59,6 @@ class HLSManager {
   // Деактивировать текущее видео
   deactivateVideo(videoId: string) {
     if (this.currentVideoId === videoId) {
-      console.log('[HLSManager] Deactivating', videoId);
       this.destroyCurrent();
     }
   }

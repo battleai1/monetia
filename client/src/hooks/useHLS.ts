@@ -14,12 +14,13 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       // Активируем это видео в глобальном менеджере
       hlsManager.setActiveVideo(video, videoUrl, videoId);
     } else {
-      // Деактивируем это видео
-      hlsManager.deactivateVideo(videoId);
+      // Деактивируем это видео только если оно текущее
+      if (hlsManager.getCurrentVideoId() === videoId) {
+        hlsManager.deactivateVideo(videoId);
+      }
       
       // Останавливаем воспроизведение
       video.pause();
-      video.currentTime = 0;
     }
 
     // Cleanup при unmount
