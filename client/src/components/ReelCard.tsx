@@ -211,9 +211,17 @@ export default function ReelCard({
     if (isHoldingPause) {
       video.pause();
     } else if (isActive) {
-      // Вызываем play() только если видео на паузе и не закончилось
-      if (video.paused && !video.ended) {
-        video.play().catch(() => {});
+      // Ждём загрузки видео перед воспроизведением
+      const tryPlay = () => {
+        if (video.paused && !video.ended) {
+          video.play().catch(() => {});
+        }
+      };
+
+      if (video.readyState >= 2) {
+        tryPlay();
+      } else {
+        video.addEventListener('loadeddata', tryPlay, { once: true });
       }
     } else {
       video.pause();
