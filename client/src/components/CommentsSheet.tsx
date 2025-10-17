@@ -91,7 +91,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             </div>
 
             {/* Comments List */}
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 scrollbar-hide">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3 mb-6" data-testid={`comment-${comment.id}`}>
                   <Avatar className="w-9 h-9 flex-shrink-0">
