@@ -32,42 +32,42 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     // Отсчёт 5→4→3→2→1
     for (let i = 0; i < DIGITS.length; i++) {
       const digit = DIGITS[i];
+      const nextDigitValue = i < DIGITS.length - 1 ? DIGITS[i + 1] : null;
+      
       setCurrentDigit(digit);
       
-      // Хэптик и вибрация в момент появления цифры
-      setTimeout(() => {
-        if (digit === 1) {
-          triggerHaptic('heavy');
-          // Вибрация для мобильных устройств (fallback)
-          if (navigator.vibrate) {
-            navigator.vibrate(100); // 100ms сильная вибрация
-          }
-        } else {
-          triggerHaptic('medium');
-          // Вибрация для мобильных устройств (fallback)
-          if (navigator.vibrate) {
-            navigator.vibrate(50); // 50ms средняя вибрация
-          }
+      // Хэптик и вибрация СРАЗУ при появлении цифры
+      if (digit === 1) {
+        triggerHaptic('heavy');
+        if (navigator.vibrate) {
+          navigator.vibrate(100);
         }
-      }, 250);
+      } else {
+        triggerHaptic('medium');
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+      }
 
-      // Показываем следующую цифру на фоне во время взрыва (через 700ms)
-      if (i < DIGITS.length - 1) {
+      // Показываем СЛЕДУЮЩУЮ цифру на фоне во время взрыва (через 700ms)
+      if (nextDigitValue !== null) {
         setTimeout(() => {
-          setNextDigit(DIGITS[i + 1]);
+          setNextDigit(nextDigitValue);
         }, 700);
       }
 
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
       
-      // Убираем текущую цифру, следующая уже на экране
+      // Убираем текущую цифру
       setCurrentDigit(null);
-      setNextDigit(null);
     }
     
-    // Показываем "Ты готов(а)?" на 1 секунду
+    // Убираем последнюю nextDigit если осталась
+    setNextDigit(null);
+    
+    // Показываем "Ты готов(а)?" на 2 секунды
     setShowReadyText(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Fade out
     setIsVisible(false);
@@ -134,7 +134,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                       }}
                       className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
                       style={{
-                        fontSize: 'clamp(56px, 20vmin, 140px)',
+                        fontSize: 'clamp(80px, 30vmin, 200px)',
                         willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity',
                         transform: 'translateZ(0)',
                         backfaceVisibility: 'hidden',
@@ -168,7 +168,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                       }}
                       className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
                       style={{
-                        fontSize: 'clamp(56px, 20vmin, 140px)',
+                        fontSize: 'clamp(80px, 30vmin, 200px)',
                         willChange: 'transform, opacity',
                         transform: 'translateZ(0)',
                         backfaceVisibility: 'hidden',
@@ -194,7 +194,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                 }}
                 className="text-white font-bold"
                 style={{ 
-                  fontSize: 'clamp(20px, 5vmin, 32px)',
+                  fontSize: 'clamp(28px, 7vmin, 48px)',
                   transform: 'translateZ(0)',
                   backfaceVisibility: 'hidden'
                 }}

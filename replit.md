@@ -22,7 +22,11 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
     - navigator.vibrate(50ms) для цифр 5-2
     - navigator.vibrate(100ms) для цифры 1
     - + Telegram Haptic API (medium/heavy)
-  - **Последовательность**: таймер → "Ты готов(а)?" (1с) → видео запускается
+    - Вибрация срабатывает СРАЗУ при появлении цифры
+  - **Последовательность**: таймер → "Ты готов(а)?" (2с) → видео запускается
+  - **Увеличенные размеры**:
+    - Цифры: clamp(80px, 30vmin, 200px) - крупнее на 40%
+    - Надпись "Ты готов(а)?": clamp(28px, 7vmin, 48px) - крупнее на 40%
   - Видео НЕ рендерится до завершения countdown (showCountdown контролирует)
   - Нет кнопки "Пропустить" - полноценный просмотр countdown
   - Поддержка prefers-reduced-motion (упрощённая анимация без scale/blur)
