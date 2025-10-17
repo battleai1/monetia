@@ -77,7 +77,7 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       video.currentTime = 0;
     }
     // НЕ вызываем play здесь - это делает ReelCard
-  }, [isActive]);
+  }, [isActive, videoId]);
 
   return videoRef;
 }
