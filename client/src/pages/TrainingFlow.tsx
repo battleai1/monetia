@@ -1,6 +1,6 @@
 import { useLocation } from 'wouter';
 import { useMemo } from 'react';
-import { useLessons } from '@/hooks/useVideos';
+import { lessons } from '@/lib/content';
 import ReelsViewport from '@/components/ReelsViewport';
 import ReelCard from '@/components/ReelCard';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -8,11 +8,10 @@ import { useTelegram } from '@/hooks/useTelegram';
 export default function TrainingFlow() {
   const [, setLocation] = useLocation();
   const { startParam } = useTelegram();
-  const { data: lessons, isLoading } = useLessons();
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {
-    if (startParam && startParam.startsWith('reel_') && lessons) {
+    if (startParam && startParam.startsWith('reel_')) {
       const reelNumber = parseInt(startParam.replace('reel_', ''), 10);
       const index = reelNumber - 1; // reel_1 → index 0
       if (index >= 0 && index < lessons.length) {
@@ -21,19 +20,11 @@ export default function TrainingFlow() {
       }
     }
     return 0;
-  }, [startParam, lessons]);
+  }, [startParam]);
 
   const handleFinalCTA = () => {
     setLocation('/training/final');
   };
-
-  if (isLoading || !lessons) {
-    return (
-      <div className="h-viewport w-viewport bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Загрузка...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-viewport w-viewport bg-black">
@@ -43,18 +34,18 @@ export default function TrainingFlow() {
             key={lesson.id}
             id={lesson.id}
             videoUrl={lesson.videoUrl}
-            posterUrl={lesson.posterUrl || undefined}
-            lessonTitle={lesson.lessonTitle || undefined}
-            lessonBrief={lesson.captionBrief || undefined}
-            lessonFull={lesson.captionFull || undefined}
-            ctaText={lesson.nextCtaText || undefined}
+            posterUrl={lesson.posterUrl}
+            lessonTitle={lesson.lessonTitle}
+            lessonBrief={lesson.captionBrief}
+            lessonFull={lesson.captionFull}
+            ctaText={lesson.nextCtaText}
             isActive={false}
             mode="training"
             onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
-            author={lesson.author || undefined}
-            authorAvatar={lesson.authorAvatar || undefined}
-            likeCount={lesson.likeCount || 0}
-            shareCount={lesson.shareCount || 0}
+            author={lesson.author}
+            authorAvatar={lesson.authorAvatar}
+            likeCount={lesson.likeCount}
+            shareCount={lesson.shareCount}
           />
         ))}
       </ReelsViewport>

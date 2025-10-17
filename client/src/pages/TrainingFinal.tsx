@@ -1,27 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import TestimonialsWall from '@/components/TestimonialsWall';
-import { useTestimonials } from '@/hooks/useVideos';
+import { testimonials } from '@/lib/content';
 import { logPurchaseClick } from '@/lib/analytics';
 import { useTelegram } from '@/hooks/useTelegram';
-import type { Testimonial } from '@/lib/content';
-import type { Video } from '@shared/schema';
 
 export default function TrainingFinal() {
   const { webApp, triggerHaptic } = useTelegram();
-  const { data: videosData, isLoading } = useTestimonials();
-  
-  const testimonials = useMemo(() => {
-    if (!videosData) return [];
-    return videosData.map((video: Video): Testimonial => ({
-      id: video.id,
-      author: video.author || '',
-      role: video.role || undefined,
-      thumbUrl: video.thumbUrl || '',
-      videoUrl: video.videoUrl,
-      highlight: video.highlight || undefined,
-    }));
-  }, [videosData]);
 
   useEffect(() => {
     if (webApp?.MainButton) {
@@ -74,13 +59,7 @@ export default function TrainingFinal() {
           Что говорят ученики
         </h2>
 
-        {isLoading ? (
-          <div className="text-center text-white/70">Загрузка отзывов...</div>
-        ) : testimonials && testimonials.length > 0 ? (
-          <TestimonialsWall testimonials={testimonials} />
-        ) : (
-          <div className="text-center text-white/70">Отзывы скоро появятся</div>
-        )}
+        <TestimonialsWall testimonials={testimonials} />
       </div>
     </div>
   );

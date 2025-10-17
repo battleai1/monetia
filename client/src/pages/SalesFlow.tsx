@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
-import { useSalesReels } from '@/hooks/useVideos';
+import { salesReels } from '@/lib/content';
 import ReelsViewport from '@/components/ReelsViewport';
 import ReelCard from '@/components/ReelCard';
 import IntroCountdown from '@/components/IntroCountdown';
@@ -11,11 +11,10 @@ export default function SalesFlow() {
   const [showCountdown, setShowCountdown] = useState(true);
   const [forcePlayFirst, setForcePlayFirst] = useState(false);
   const { startParam } = useTelegram();
-  const { data: salesReels, isLoading } = useSalesReels();
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {
-    if (startParam && startParam.startsWith('reel_') && salesReels) {
+    if (startParam && startParam.startsWith('reel_')) {
       const reelNumber = parseInt(startParam.replace('reel_', ''), 10);
       const index = reelNumber - 1; // reel_1 → index 0
       if (index >= 0 && index < salesReels.length) {
@@ -24,7 +23,7 @@ export default function SalesFlow() {
       }
     }
     return 0;
-  }, [startParam, salesReels]);
+  }, [startParam]);
 
   const handleFinalCTA = () => {
     setLocation('/training');
@@ -46,14 +45,6 @@ export default function SalesFlow() {
     }
   }, [forcePlayFirst]);
 
-  if (isLoading || !salesReels) {
-    return (
-      <div className="h-viewport w-viewport bg-black flex items-center justify-center">
-        <div className="text-white text-lg">Загрузка...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-viewport w-viewport bg-black">
       {showCountdown && <IntroCountdown onComplete={handleCountdownComplete} />}
@@ -65,20 +56,20 @@ export default function SalesFlow() {
             key={reel.id}
             id={reel.id}
             videoUrl={reel.videoUrl}
-            posterUrl={reel.posterUrl || undefined}
-            hook={reel.hook || undefined}
-            ctaText={reel.ctaText || undefined}
+            posterUrl={reel.posterUrl}
+            hook={reel.hook}
+            ctaText={reel.ctaText}
             isActive={false}
             mode="sales"
             onCTAClick={reel.isFinal ? handleFinalCTA : undefined}
-            author={reel.author || ""}
-            authorAvatar={reel.authorAvatar || undefined}
-            title={reel.title || ""}
-            descriptionBrief={reel.descriptionBrief || ""}
-            descriptionFull={reel.descriptionFull || ""}
-            comments={(reel.comments as any) || []}
-            likeCount={reel.likeCount || 0}
-            shareCount={reel.shareCount || 0}
+            author={reel.author}
+            authorAvatar={reel.authorAvatar}
+            title={reel.title}
+            descriptionBrief={reel.descriptionBrief}
+            descriptionFull={reel.descriptionFull}
+            comments={reel.comments}
+            likeCount={reel.likeCount}
+            shareCount={reel.shareCount}
             forcePlay={index === 0 ? forcePlayFirst : false}
           />
         ))}
