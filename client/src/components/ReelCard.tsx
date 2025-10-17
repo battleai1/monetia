@@ -207,9 +207,15 @@ export default function ReelCard({
     if (!video) return;
 
     if (isHoldingSpeed) {
+      console.log('[Speed] Changing to 2x, paused:', video.paused, 'ended:', video.ended);
       video.playbackRate = 2.0;
     } else {
+      console.log('[Speed] Changing to 1x, paused:', video.paused, 'ended:', video.ended);
       video.playbackRate = 1.0;
+      // Принудительная проверка что видео не на паузе
+      if (!video.paused && !video.ended) {
+        console.log('[Speed] Video is already playing at 1x, no action needed');
+      }
     }
   }, [isHoldingSpeed]);
 
