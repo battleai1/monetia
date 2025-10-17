@@ -7,52 +7,65 @@ export function useHLS(videoUrl: string, enabled: boolean = true) {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !enabled) return;
+    if (!video) return;
 
     const isHLS = videoUrl.includes('.m3u8');
     
     if (isHLS) {
       if (Hls.isSupported()) {
-        console.log('[HLS] Initializing HLS.js for:', videoUrl);
-        
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-          backBufferLength: 90,
-        });
-        
-        hlsRef.current = hls;
-        hls.loadSource(videoUrl);
-        hls.attachMedia(video);
-        
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          console.log('[HLS] Manifest parsed successfully');
-        });
-        
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            console.error('[HLS] Fatal error:', data);
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                console.log('[HLS] Network error, trying to recover...');
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                console.log('[HLS] Media error, trying to recover...');
-                hls.recoverMediaError();
-                break;
-              default:
-                console.error('[HLS] Cannot recover from error');
-                hls.destroy();
-                break;
+        // Только создаем новый HLS если его еще нет или изменился URL
+        if (!hlsRef.current) {
+          console.log('[HLS] Initializing HLS.js for:', videoUrl);
+          
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 90,
+          });
+          
+          hlsRef.current = hls;
+          hls.loadSource(videoUrl);
+          hls.attachMedia(video);
+          
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('[HLS] Manifest parsed successfully');
+          });
+          
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              console.error('[HLS] Fatal error:', data);
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.log('[HLS] Network error, trying to recover...');
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.log('[HLS] Media error, trying to recover...');
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  console.error('[HLS] Cannot recover from error');
+                  hls.destroy();
+                  hlsRef.current = null;
+                  break;
+              }
             }
-          }
-        });
+          });
+        }
         
         return () => {
+          // Уничтожаем HLS ТОЛЬКО при размонтировании компонента или смене videoUrl
           console.log('[HLS] Cleaning up HLS instance');
-          hls.destroy();
-          hlsRef.current = null;
+          if (hlsRef.current) {
+            // Останавливаем видео перед уничтожением HLS
+            if (video) {
+              video.pause();
+              video.removeAttribute('src');
+              video.load();
+            }
+            hlsRef.current.destroy();
+            hlsRef.current = null;
+          }
         };
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('[HLS] Using native HLS support (Safari)');
@@ -63,7 +76,7 @@ export function useHLS(videoUrl: string, enabled: boolean = true) {
     } else {
       video.src = videoUrl;
     }
-  }, [videoUrl, enabled]);
+  }, [videoUrl]); // Убрал enabled из зависимостей!
 
   return videoRef;
 }
