@@ -18,10 +18,10 @@ export default function TrainingFlow() {
     return lessons.map(lesson => lesson.videoUrl);
   }, [lessons]);
 
-  // Предзагрузка видео
+  // Предзагрузка видео (всегда активна, независимо от UI)
   const { loadedCount, totalCount, progress } = useVideoPreloader(
     videoUrls,
-    showPreloader && videoUrls.length > 0
+    videoUrls.length > 0
   );
 
   // Логируем прогресс предзагрузки
@@ -31,10 +31,10 @@ export default function TrainingFlow() {
     }
   }, [loadedCount, totalCount, progress]);
 
-  // Скрываем прелоадер когда первое видео готово
+  // Скрываем UI прелоадера когда первое видео готово (но предзагрузка продолжается)
   useEffect(() => {
     if (loadedCount >= 1 && showPreloader) {
-      console.log('[TrainingFlow] First video ready, hiding preloader');
+      console.log('[TrainingFlow] First video ready, hiding UI preloader (background preloading continues)');
       setTimeout(() => {
         setShowPreloader(false);
       }, 300);
