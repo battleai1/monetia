@@ -32,7 +32,7 @@ export default function ReelAuthorCaption({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+    <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/70 via-black/40 to-transparent pt-32">
       <div className="absolute bottom-5 left-4 right-4">
         <div className="flex items-center gap-3 mb-3">
           <Avatar className="w-9 h-9 border-2 border-white/80">
