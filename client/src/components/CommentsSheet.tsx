@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { Smile } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
@@ -24,6 +24,7 @@ const EMOJI_REACTIONS = ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮
 
 export default function CommentsSheet({ isOpen, onClose, comments, commentCount, onOpenChange }: CommentsSheetProps) {
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+  const dragControls = useDragControls();
 
   const toggleLike = (commentId: string) => {
     setLikedComments(prev => {
@@ -67,6 +68,8 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             drag="y"
+            dragListener={false}
+            dragControls={dragControls}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.5 }}
             onDragEnd={handleDragEnd}
@@ -79,12 +82,18 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             data-testid="comments-sheet"
           >
             {/* Drag Handle */}
-            <div className="flex justify-center pt-2 pb-3 cursor-grab active:cursor-grabbing">
+            <div 
+              className="flex justify-center pt-2 pb-3 cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
               <div className="w-10 h-1 bg-zinc-600 rounded-full" data-testid="drag-handle" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-center px-4 pb-4">
+            <div 
+              className="flex items-center justify-center px-4 pb-4"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
               <h3 className="text-base font-semibold text-white">
                 Comments
               </h3>

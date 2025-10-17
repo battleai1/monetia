@@ -22,6 +22,7 @@ interface ReelCardProps {
   onProgress?: (progress: number) => void;
   onCTAClick?: () => void;
   onVideoEnded?: () => void;
+  onCommentsOpenChange?: (open: boolean) => void;
   author?: string;
   authorAvatar?: string;
   title?: string;
@@ -46,6 +47,7 @@ export default function ReelCard({
   onProgress,
   onCTAClick,
   onVideoEnded,
+  onCommentsOpenChange,
   author,
   authorAvatar,
   title,
@@ -63,6 +65,10 @@ export default function ReelCard({
   const [isHoldingPause, setIsHoldingPause] = useState(false);
   const [isHoldingSpeed, setIsHoldingSpeed] = useState(false);
   const { isMuted } = useAppStore();
+
+  useEffect(() => {
+    onCommentsOpenChange?.(showComments);
+  }, [showComments, onCommentsOpenChange]);
 
   useEffect(() => {
     const video = videoRef.current;

@@ -1,7 +1,7 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { cloneElement, isValidElement, useRef, useEffect } from 'react';
+import { cloneElement, isValidElement, useRef, useEffect, useState } from 'react';
 import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ReelsViewportProps {
@@ -19,6 +19,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
   const y = useMotionValue(0);
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
   // Компенсируем смещение при смене индекса
   useEffect(() => {
@@ -101,6 +102,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
         isActive: true,
         onProgress: (progress: number) => updateProgress(currentIndex, progress),
         onVideoEnded: handleVideoEnded,
+        onCommentsOpenChange: setIsCommentsOpen,
       })
     : currentChild;
 
@@ -125,7 +127,7 @@ export default function ReelsViewport({ children, totalReels, onIndexChange }: R
       />
 
       <motion.div
-        drag="y"
+        drag={isCommentsOpen ? false : "y"}
         dragConstraints={{ top: -viewportHeight * 1.2, bottom: viewportHeight * 1.2 }}
         dragElastic={0.05}
         onDragEnd={handleDragEnd}
