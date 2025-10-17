@@ -58,7 +58,8 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-transparent z-40 pointer-events-none"
+            onClick={handleClose}
+            className="fixed inset-0 bg-transparent z-40 cursor-pointer"
             data-testid="comments-overlay"
           />
           
