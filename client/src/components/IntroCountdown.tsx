@@ -3,15 +3,22 @@ import { motion } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 
 const DIGITS = [5, 4, 3, 2, 1];
-const T = 700;                    // длительность одного тика
-const OVERLAP = 0.4;              // доля перекрытия следующей цифры
+const T = 1500;                   // длительность одного тика (1.5 секунды)
+const OVERLAP = 0.4;              // доля перекрытия следующей цифры (40%)
 const OVERLAY_FADE = 280;         // исчезновение оверлея
+
+// Расчёт общего времени отсчёта:
+// Первая цифра: T = 1500ms
+// Следующие 4 цифры: T * (1 - OVERLAP) = 1500 * 0.6 = 900ms каждая
+// Итого: 1500 + 4*900 = 5100ms ≈ 5 секунд ✓
 
 interface IntroCountdownProps {
   onComplete: () => void;
 }
 
 export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
+  console.log('[IntroCountdown] Component mounting...');
+  
   const [isVisible, setIsVisible] = useState(false);
   const [showReadyText, setShowReadyText] = useState(false);
   const { triggerHaptic } = useTelegram();
@@ -33,7 +40,12 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     if (hasShown.current) return;
     hasShown.current = true;
     setIsVisible(true);
-    runCountdown();
+    
+    // Ждём монтирования refs перед запуском countdown
+    setTimeout(() => {
+      console.log('[Countdown] Starting after mount...');
+      runCountdown();
+    }, 100);
   }, []);
 
   // Хэптик с безопасной проверкой
@@ -52,7 +64,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   };
 
   // Единая анимация для цифры (Web Animations API)
-  const playDigit = (el: HTMLDivElement, value: number): Promise<void> => {
+  const playDigit = (el: HTMLDivElement, value: number): void => {
     el.textContent = String(value);
     
     // Отменяем все текущие анимации
@@ -62,7 +74,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     const hapticDelay = Math.round(T * 0.35);
 
     // Ключевая анимация: увеличение + размытие
-    const anim = el.animate([
+    el.animate([
       { opacity: '0', transform: 'scale(0.7)', filter: 'blur(0px)' },
       { opacity: '1', transform: 'scale(1.0)', filter: 'blur(0px)', offset: 0.25 },
       { opacity: '0', transform: 'scale(2.0)', filter: 'blur(10px)' }
@@ -74,21 +86,25 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
 
     // Триггер хэптика на пике
     setTimeout(() => haptic(value), hapticDelay);
-
-    return anim.finished.catch(() => {});
   };
 
   // Главный цикл с перекрытием (двойной буфер)
   const runCountdown = async () => {
     const layers = [layer0Ref.current, layer1Ref.current];
-    if (!layers[0] || !layers[1]) return;
+    if (!layers[0] || !layers[1]) {
+      console.error('[Countdown] Refs not initialized');
+      return;
+    }
 
+    console.log('[Countdown] Starting countdown...');
     let buf = 0; // какой слой "входящий"
     
     for (let i = 0; i < DIGITS.length; i++) {
       const incoming = layers[buf];
       const n = DIGITS[i];
 
+      console.log(`[Countdown] Playing digit ${n} on layer ${buf}`);
+      
       // Стартуем входящую цифру
       playDigit(incoming, n);
 
@@ -106,12 +122,17 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     }
 
     // Показываем "Ты готов(а)?" на 2.5 секунды
+    console.log('[Countdown] Showing "Ты готов(а)?"...');
     setShowReadyText(true);
     await new Promise(r => setTimeout(r, 2500));
 
     // Fade out
+    console.log('[Countdown] Fading out, calling onComplete...');
     setIsVisible(false);
-    setTimeout(() => onComplete(), OVERLAY_FADE);
+    setTimeout(() => {
+      console.log('[Countdown] Complete!');
+      onComplete();
+    }, OVERLAY_FADE);
   };
 
   if (!isVisible) return null;
