@@ -87,6 +87,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Video routes
+  app.get("/api/videos", async (req, res) => {
+    try {
+      const videos = await storage.getAllVideos();
+      return res.json(videos);
+    } catch (error) {
+      console.error("[Videos Route] Error:", error);
+      return res.status(500).json({ error: "Failed to fetch videos" });
+    }
+  });
+
+  app.get("/api/videos/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const videos = await storage.getVideosByType(type);
+      return res.json(videos);
+    } catch (error) {
+      console.error("[Videos Route] Error:", error);
+      return res.status(500).json({ error: "Failed to fetch videos" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
