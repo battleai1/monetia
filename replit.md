@@ -7,6 +7,19 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 ## Recent Changes (October 2025)
 
 ### Latest Updates (October 17, 2025)
+- ✅ **PostgreSQL Database Migration for Video Content**:
+  - Migrated from hardcoded content to database-backed video system
+  - Created `videos` table with fields: id, type, videoUrl, posterUrl, title, hook, author, descriptions, etc.
+  - Database stores 35 videos: 9 sales reels, 6 lessons, 20 testimonials
+  - API endpoints: GET `/api/videos`, GET `/api/videos/:type` (sales/lesson/testimonial)
+  - React Query hooks: `useSalesReels()`, `useLessons()`, `useTestimonials()`
+  - All pages now fetch videos from database via API
+- ✅ **HLS Video Streaming Support**:
+  - Installed `hls.js` library for cross-browser HLS playback
+  - Created `useHLS` hook for automatic HLS.js initialization
+  - Supports Bunny CDN HLS streams: `https://vz-6f283eac-64a.b-cdn.net/.../playlist.m3u8`
+  - Graceful fallback: Safari uses native HLS, other browsers use HLS.js
+  - Automatic cleanup and error recovery for HLS instances
 - ✅ **Telegram WebApp Deep Links System**:
   - Share button generates unique deep links: `https://t.me/Monetia_Bot/Open?startapp=reel_X`
   - Deep links open specific reels directly in Telegram WebApp (not browser)
