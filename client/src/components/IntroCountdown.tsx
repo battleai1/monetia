@@ -33,8 +33,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     for (let i = 0; i < DIGITS.length; i++) {
       const digit = DIGITS[i];
       
-      // Очищаем старую nextDigit перед установкой новой currentDigit
-      setNextDigit(null);
       setCurrentDigit(digit);
       
       // Хэптик и вибрация СРАЗУ при появлении цифры
@@ -59,12 +57,10 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
 
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
       
-      // Убираем текущую цифру
+      // Убираем обе цифры в конце итерации
       setCurrentDigit(null);
+      setNextDigit(null);
     }
-    
-    // Убираем последнюю nextDigit
-    setNextDigit(null);
     
     // Показываем "Ты готов(а)?" на 2.5 секунды
     setShowReadyText(true);
