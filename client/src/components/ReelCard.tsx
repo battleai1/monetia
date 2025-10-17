@@ -194,7 +194,12 @@ export default function ReelCard({
     if (isHoldingPause) {
       video.pause();
     } else if (isActive && !isHoldingSpeed) {
-      video.play().catch(() => {});
+      // Вызываем play() только если видео на паузе и не закончилось
+      // Проверка video.paused предотвращает дублирование звука при отпускании x2
+      // Проверка !video.ended предотвращает попытку воспроизведения завершенного видео
+      if (video.paused && !video.ended) {
+        video.play().catch(() => {});
+      }
     }
   }, [isHoldingPause, isActive, isHoldingSpeed]);
 
