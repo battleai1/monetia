@@ -15,6 +15,10 @@ if (!CHANNEL_ID) {
 let bot: Telegraf | null = null;
 
 export function initTelegramBot() {
+  console.log('[Telegram Bot] Initializing...');
+  console.log('[Telegram Bot] BOT_TOKEN available:', !!BOT_TOKEN);
+  console.log('[Telegram Bot] CHANNEL_ID available:', !!CHANNEL_ID);
+  
   if (!BOT_TOKEN || !CHANNEL_ID) {
     console.log('[Telegram Bot] Skipping bot initialization - missing required environment variables');
     return null;
@@ -22,6 +26,13 @@ export function initTelegramBot() {
 
   try {
     bot = new Telegraf(BOT_TOKEN);
+
+    // Проверяем валидность токена
+    bot.telegram.getMe().then((botInfo) => {
+      console.log('[Telegram Bot] ✅ Bot authenticated:', botInfo.username);
+    }).catch((error) => {
+      console.error('[Telegram Bot] ❌ Authentication failed:', error.message);
+    });
 
     // Обработчик заявок на вступление в канал
     bot.on('chat_join_request', async (ctx) => {
@@ -73,12 +84,13 @@ export function initTelegramBot() {
     });
 
     // Запускаем бота
+    console.log('[Telegram Bot] Launching bot...');
     bot.launch({
       dropPendingUpdates: true,
     }).then(() => {
-      console.log('[Telegram Bot] Bot started successfully');
+      console.log('[Telegram Bot] ✅ Bot started successfully');
     }).catch((error) => {
-      console.error('[Telegram Bot] Failed to start bot:', error);
+      console.error('[Telegram Bot] ❌ Failed to start bot:', error);
     });
 
     // Graceful stop
