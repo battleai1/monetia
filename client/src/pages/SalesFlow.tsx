@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { useSalesReels } from '@/hooks/useVideos';
-import { useVideoPreloader } from '@/hooks/useVideoPreloader';
 import ReelsViewport from '@/components/ReelsViewport';
 import ReelCard from '@/components/ReelCard';
 import IntroCountdown from '@/components/IntroCountdown';
@@ -13,25 +12,6 @@ export default function SalesFlow() {
   const [forcePlayFirst, setForcePlayFirst] = useState(false);
   const { startParam } = useTelegram();
   const { data: salesReels, isLoading } = useSalesReels();
-  
-  // Собираем URLs для предзагрузки
-  const videoUrls = useMemo(() => {
-    if (!salesReels) return [];
-    return salesReels.map(reel => reel.videoUrl);
-  }, [salesReels]);
-
-  // Предзагрузка видео начинается во время countdown и продолжается в фоне
-  const { loadedCount, totalCount, progress } = useVideoPreloader(
-    videoUrls,
-    videoUrls.length > 0
-  );
-
-  // Логируем прогресс предзагрузки
-  useEffect(() => {
-    if (loadedCount > 0) {
-      console.log(`[SalesFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
-    }
-  }, [loadedCount, totalCount, progress]);
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {

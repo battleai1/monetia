@@ -60,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useHLS(videoUrl, isActive, id);
+  const videoRef = useHLS(videoUrl, isActive);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
@@ -193,22 +193,20 @@ export default function ReelCard({
 
     if (isHoldingPause) {
       video.pause();
-    } else if (isActive) {
-      // Вызываем play() только если видео на паузе и не закончилось
-      if (video.paused && !video.ended) {
-        video.play().catch(() => {});
-      }
-    } else {
-      video.pause();
+    } else if (isActive && !isHoldingSpeed) {
+      video.play().catch(() => {});
     }
-  }, [isHoldingPause, isActive]);
+  }, [isHoldingPause, isActive, isHoldingSpeed]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Просто меняем скорость
-    video.playbackRate = isHoldingSpeed ? 2.0 : 1.0;
+    if (isHoldingSpeed) {
+      video.playbackRate = 2.0;
+    } else {
+      video.playbackRate = 1.0;
+    }
   }, [isHoldingSpeed]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

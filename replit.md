@@ -4,46 +4,6 @@
 
 NeurotRaffic is a Telegram WebApp designed to deliver educational content and sales funnels through an Instagram Reels-style vertical video experience. It features two main flows: a sales funnel introducing vertical video marketing and a training flow with educational lessons. The application is optimized for mobile with fullscreen vertical videos (9:16), swipe navigation, and a dark theme. Key capabilities include deep linking to specific reels, HLS video streaming, and a robust Telegram authentication system. The project aims to leverage vertical video for engaging user experiences and effective content delivery, with ambitions for market potential in mobile-first content consumption and direct sales funnels.
 
-## Recent Changes (October 2025)
-
-### Video Preloading System (October 17, 2025)
-- ✅ Created `useVideoPreloader` hook for sequential HLS video preloading
-- ✅ Videos preload during countdown animation (~7.6s window in SalesFlow)
-- ✅ First video buffers 58.9s in <1 second using HLS.js manifest parsing
-- ✅ Integrated in SalesFlow (starts during countdown) and TrainingFlow (starts on mount)
-- ✅ Duplicate URL detection prevents re-downloading same videos
-- ✅ Performance: Instant playback after countdown, no loading delays on swipe
-- ✅ Console logging: `[VideoPreloader] Video N buffered Xs` for monitoring
-
-### Redis Caching System (October 17, 2025)
-- ✅ Installed `ioredis` client for Redis connectivity
-- ✅ Created caching utilities: `getCached()`, `setCache()`, `invalidateCache()`
-- ✅ Added caching to video API endpoints with 5-minute TTL
-- ✅ Cache management endpoint: POST `/api/cache/clear` with pattern support
-- ✅ Performance improvement: 3.4x faster responses (97ms cached vs 333ms DB)
-- ✅ Graceful fallback: works without Redis, just logs warning
-
-### Telegram Bot Integration (October 17, 2025)
-- ✅ Integrated `telegraf` library for Telegram Bot API
-- ✅ Auto-accepts channel join requests via `chat_join_request` handler
-- ✅ Sends welcome message "+10 руб. - продолжи просмотр" with WebApp inline button
-- ✅ Bot authenticated and running with long polling active (Monetia_Bot)
-- ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
-- ✅ Bot must be admin in target channel to auto-approve join requests
-
-### HLS Audio Duplication Fix - Final Resolution (October 17, 2025)
-- ✅ **Completely resolved** critical audio duplication bug affecting all video playback
-- ✅ Root cause identified: ReelsViewport renders 3 videos simultaneously (prev/current/next), all creating HLS instances
-- ✅ Previous attempts failed because `isActive` dependency caused HLS recreation during swipes
-- ✅ **Final solution**: Rewrote `useHLS` hook to create HLS instance EXACTLY ONCE per component
-  - Single guard: `if (!hlsRef.current)` prevents multiple instantiations
-  - Zero dependencies on `isActive` - removed from useEffect deps entirely
-  - Cleanup ONLY on component unmount or videoUrl change
-  - Inactive reels stay paused via separate `isActive` effect in ReelCard
-- ✅ Simplified playback speed: Only mutates `video.playbackRate`, no pause/play cycles
-- ✅ Performance: Zero HLS reinitializations during normal usage, single instance per video
-- ✅ Memory: Proper cleanup prevents HLS instance leaks during reel navigation
-
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -64,9 +24,7 @@ The application implements an Instagram Reels-style UI with a dark theme, featur
 
 ## External Dependencies
 
-*   **Telegram Integration**: 
-    - `@twa-dev/sdk` for Telegram WebApp API features like haptic feedback, MainButton, user data, and native share functionality
-    - `telegraf` for Telegram Bot API (auto-accepting channel join requests, sending welcome messages)
+*   **Telegram Integration**: `@twa-dev/sdk` for Telegram WebApp API features like haptic feedback, MainButton, user data, and native share functionality.
 *   **Database**: Neon Database for serverless PostgreSQL, managed with Drizzle ORM.
 *   **Caching**: `ioredis` for Redis caching.
 *   **Video Streaming**: `hls.js` for HLS video playback; Bunny CDN for HLS streams.
