@@ -23,6 +23,14 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Performance improvement: 3.4x faster responses (97ms cached vs 333ms DB)
 - ✅ Graceful fallback: works without Redis, just logs warning
 
+### Telegram Bot Integration (October 17, 2025)
+- ✅ Integrated `telegraf` library for Telegram Bot API
+- ✅ Auto-accepts channel join requests via `chat_join_request` handler
+- ✅ Sends welcome message "+10 руб. - продолжи просмотр" with WebApp inline button
+- ✅ Bot authenticated and running with long polling active (Monetia_Bot)
+- ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
+- ✅ Bot must be admin in target channel to auto-approve join requests
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -43,7 +51,9 @@ The application implements an Instagram Reels-style UI with a dark theme, featur
 
 ## External Dependencies
 
-*   **Telegram Integration**: `@twa-dev/sdk` for Telegram WebApp API features like haptic feedback, MainButton, user data, and native share functionality.
+*   **Telegram Integration**: 
+    - `@twa-dev/sdk` for Telegram WebApp API features like haptic feedback, MainButton, user data, and native share functionality
+    - `telegraf` for Telegram Bot API (auto-accepting channel join requests, sending welcome messages)
 *   **Database**: Neon Database for serverless PostgreSQL, managed with Drizzle ORM.
 *   **Caching**: `ioredis` for Redis caching.
 *   **Video Streaming**: `hls.js` for HLS video playback; Bunny CDN for HLS streams.

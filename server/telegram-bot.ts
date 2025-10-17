@@ -59,27 +59,37 @@ export function initTelegramBot() {
         await ctx.approveChatJoinRequest(userId);
         console.log('[Telegram Bot] Join request approved for user:', userId);
 
-        // Получаем информацию о боте для создания правильной ссылки
+        // Получаем информацию о боте и создаем WebApp URL
         const botInfo = await bot!.telegram.getMe();
-        const webAppUrl = `https://t.me/${botInfo.username}?start=welcome`;
+        const webAppUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://neurotrraffic.replit.app'}?startapp=s1`;
 
-        // Отправляем приветственное сообщение с inline кнопкой
-        await bot!.telegram.sendMessage(userId, '+10 руб. - продолжи просмотр', {
+        // Отправляем приветственное сообщение В КАНАЛ (не в DM)
+        // Telegram запрещает ботам инициировать приватные чаты
+        const welcomeMessage = `Привет, ${userName}! 👋\n\n+10 руб. - продолжи просмотр`;
+        
+        await bot!.telegram.sendMessage(chatId, welcomeMessage, {
           reply_markup: {
             inline_keyboard: [
               [
                 {
                   text: '🚀 Открыть приложение',
-                  url: webAppUrl,
+                  web_app: { url: webAppUrl },
                 },
               ],
             ],
           },
         });
 
-        console.log('[Telegram Bot] Welcome message sent to user:', userId);
+        console.log('[Telegram Bot] Welcome message sent to channel for user:', userName);
       } catch (error) {
-        console.error('[Telegram Bot] Error handling join request:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        // Специальная обработка 403 Forbidden (бот не может отправлять DM)
+        if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+          console.error('[Telegram Bot] ❌ 403 Forbidden - Bot lacks permission. Ensure bot is admin in channel.');
+        } else {
+          console.error('[Telegram Bot] ❌ Error handling join request:', errorMessage);
+        }
       }
     });
 
