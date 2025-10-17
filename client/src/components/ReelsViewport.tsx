@@ -112,39 +112,38 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* КРИТИЧНО: filter ПЕРЕД map для РЕАЛЬНОГО размонтирования компонентов */}
-        {children.map((child, index) => {
-          // Рендерим только prev/current/next
-          if (index < currentIndex - 1 || index > currentIndex + 1) {
-            return null;
-          }
-          
-          if (!isValidElement(child)) return null;
-          
-          const isActive = index === currentIndex;
-          const position = (index - currentIndex) * 100;
-          
-          // STABLE KEY из props.id  
-          const childProps = (child as React.ReactElement<any>).props;
-          const stableKey = childProps.id || (child as React.ReactElement<any>).key || index;
-          
-          const childWithProps = cloneElement(child as React.ReactElement<any>, {
-            isActive,
-            onProgress: isActive ? (progress: number) => updateProgress(index, progress) : undefined,
-            onVideoEnded: isActive ? handleVideoEnded : undefined,
-            onCommentsOpenChange: isActive ? setIsCommentsOpen : undefined,
-          });
+        {/* КРИТИЧНО: ФИЛЬТРУЕМ массив ДО map чтобы РЕАЛЬНО размонтировать компоненты */}
+        {children
+          .slice(Math.max(0, currentIndex - 1), currentIndex + 2)
+          .map((child, filteredIndex) => {
+            if (!isValidElement(child)) return null;
+            
+            // Вычисляем оригинальный индекс
+            const originalIndex = Math.max(0, currentIndex - 1) + filteredIndex;
+            const isActive = originalIndex === currentIndex;
+            const position = (originalIndex - currentIndex) * 100;
+            
+            // STABLE KEY из props.id
+            const childProps = (child as React.ReactElement<any>).props;
+            const stableKey = childProps.id || originalIndex;
+            
+            const childWithProps = cloneElement(child as React.ReactElement<any>, {
+              isActive,
+              onProgress: isActive ? (progress: number) => updateProgress(originalIndex, progress) : undefined,
+              onVideoEnded: isActive ? handleVideoEnded : undefined,
+              onCommentsOpenChange: isActive ? setIsCommentsOpen : undefined,
+            });
 
-          return (
-            <div
-              key={stableKey}
-              className="absolute inset-0 w-full h-full"
-              style={{ transform: `translateY(${position}%)` }}
-            >
-              {childWithProps}
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={stableKey}
+                className="absolute inset-0 w-full h-full"
+                style={{ transform: `translateY(${position}%)` }}
+              >
+                {childWithProps}
+              </div>
+            );
+          })}
       </motion.div>
     </div>
   );
