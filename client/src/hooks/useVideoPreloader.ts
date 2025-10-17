@@ -71,6 +71,7 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
             
             // Загружаем первые 10 секунд
             video.currentTime = 0;
+            video.volume = 0; // КРИТИЧНО: отключаем звук полностью
             video.play().then(() => {
               setTimeout(() => {
                 video.pause();
@@ -81,9 +82,13 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
                   console.log(`[VideoPreloader] Video ${index} buffered ${bufferedEnd.toFixed(1)}s`);
                 }
                 
+                // КРИТИЧНО: уничтожаем HLS после буферизации!
+                hls.destroy();
+                console.log(`[VideoPreloader] HLS destroyed for video ${index}`);
+                
                 preloadedVideos.current.set(url, {
                   url,
-                  hls,
+                  hls: null, // HLS уже уничтожен
                   videoElement: video,
                   loaded: true,
                 });
@@ -94,9 +99,12 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
             }).catch(() => {
               console.log(`[VideoPreloader] Silent play failed for video ${index}, but HLS initialized`);
               
+              // Уничтожаем HLS даже при ошибке
+              hls.destroy();
+              
               preloadedVideos.current.set(url, {
                 url,
-                hls,
+                hls: null,
                 videoElement: video,
                 loaded: true,
               });

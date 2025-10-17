@@ -20,8 +20,6 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       if (Hls.isSupported()) {
         // Создаём HLS ТОЛЬКО если активно И ещё нет instance
         if (!hlsRef.current) {
-          console.log('[HLS] ✅ CREATE', videoId, videoUrl.substring(0, 50));
-          
           const hls = new Hls({
             enableWorker: true,
             lowLatencyMode: true,
@@ -32,13 +30,8 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
           hls.loadSource(videoUrl);
           hls.attachMedia(video);
           
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            console.log('[HLS] ✅ READY', videoId);
-          });
-          
           hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
-              console.error('[HLS] ❌ FATAL', videoId, data.type);
               switch (data.type) {
                 case Hls.ErrorTypes.NETWORK_ERROR:
                   hls.startLoad();
@@ -53,8 +46,6 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
               }
             }
           });
-        } else {
-          console.log('[HLS] ♻️ REUSE existing HLS for', videoId);
         }
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoUrl;
@@ -66,12 +57,11 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
     // Cleanup ТОЛЬКО при unmount компонента
     return () => {
       if (hlsRef.current) {
-        console.log('[HLS] 🗑️ DESTROY', videoId);
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
     };
-  }, [videoUrl, isActive]); // БЕЗ videoId в deps!
+  }, [videoUrl, isActive]);
 
   return videoRef;
 }

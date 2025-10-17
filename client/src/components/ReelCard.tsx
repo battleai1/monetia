@@ -191,21 +191,17 @@ export default function ReelCard({
     const video = videoRef.current;
     if (!video) return;
 
-    console.log('[ReelCard] Activity changed - id:', id, 'isActive:', isActive, 'isHoldingPause:', isHoldingPause);
-
     if (isHoldingPause) {
       video.pause();
     } else if (isActive) {
       // Вызываем play() только если видео на паузе и не закончилось
       if (video.paused && !video.ended) {
-        console.log('[ReelCard] Starting playback for:', id);
         video.play().catch(() => {});
       }
     } else {
-      console.log('[ReelCard] Pausing inactive video:', id);
       video.pause();
     }
-  }, [isHoldingPause, isActive, id]);
+  }, [isHoldingPause, isActive]);
 
   useEffect(() => {
     const video = videoRef.current;
