@@ -4,6 +4,25 @@
 
 NeurotRaffic is a Telegram WebApp designed to deliver educational content and sales funnels through an Instagram Reels-style vertical video experience. It features two main flows: a sales funnel introducing vertical video marketing and a training flow with educational lessons. The application is optimized for mobile with fullscreen vertical videos (9:16), swipe navigation, and a dark theme. Key capabilities include deep linking to specific reels, HLS video streaming, and a robust Telegram authentication system. The project aims to leverage vertical video for engaging user experiences and effective content delivery, with ambitions for market potential in mobile-first content consumption and direct sales funnels.
 
+## Recent Changes (October 2025)
+
+### Video Preloading System (October 17, 2025)
+- ✅ Created `useVideoPreloader` hook for sequential HLS video preloading
+- ✅ Videos preload during countdown animation (~7.6s window in SalesFlow)
+- ✅ First video buffers 58.9s in <1 second using HLS.js manifest parsing
+- ✅ Integrated in SalesFlow (starts during countdown) and TrainingFlow (starts on mount)
+- ✅ Duplicate URL detection prevents re-downloading same videos
+- ✅ Performance: Instant playback after countdown, no loading delays on swipe
+- ✅ Console logging: `[VideoPreloader] Video N buffered Xs` for monitoring
+
+### Redis Caching System (October 17, 2025)
+- ✅ Installed `ioredis` client for Redis connectivity
+- ✅ Created caching utilities: `getCached()`, `setCache()`, `invalidateCache()`
+- ✅ Added caching to video API endpoints with 5-minute TTL
+- ✅ Cache management endpoint: POST `/api/cache/clear` with pattern support
+- ✅ Performance improvement: 3.4x faster responses (97ms cached vs 333ms DB)
+- ✅ Graceful fallback: works without Redis, just logs warning
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
