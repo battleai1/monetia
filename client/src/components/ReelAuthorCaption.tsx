@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BadgeCheck } from 'lucide-react';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface ReelAuthorCaptionProps {
   reelId: string;
@@ -23,6 +24,7 @@ export default function ReelAuthorCaption({
   onExpand,
 }: ReelAuthorCaptionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { openTelegramLink } = useTelegram();
 
   const toggleExpand = () => {
     if (!isExpanded) {
@@ -54,10 +56,8 @@ export default function ReelAuthorCaption({
           </div>
           <button
             onClick={() => {
-              console.log('Follow clicked');
-              if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.openLink('https://t.me/+xxtfdN-63QNlNWFi');
-              }
+              console.log('[Subscribe] Opening Telegram channel via openTelegramLink');
+              openTelegramLink('https://t.me/+xxtfdN-63QNlNWFi');
             }}
             className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
             data-testid={`button-follow-${reelId}`}

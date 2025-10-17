@@ -13,11 +13,16 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - SalesFlow and TrainingFlow support `initialReelIndex` from `start_param`
   - ReelsViewport accepts `initialReelIndex` prop for programmatic positioning
   - Automatic parsing: `reel_1` → index 0, `reel_2` → index 1, etc.
-- ✅ **Author Block Positioning - FIXED**:
+- ✅ **Author Block Positioning & Gradient**:
   - Stable positioning: `bottom-5` (20px from bottom) for content block
+  - Extended gradient: `pt-32` (128px height) for better coverage
+  - Smooth fadeout: 6-step opacity transition (100→80→60→40→20→0)
   - Gradient background remains at `bottom-0` (full coverage)
-  - No more edge-hugging or jumping between reels
   - Works consistently in both Sales and Training flows
+- ✅ **Subscribe Button - Telegram Native Navigation**:
+  - Fixed: "Подписаться" button now uses `openTelegramLink()` instead of `openLink()`
+  - Opens channel invitation INSIDE Telegram WebApp (no external browser redirect)
+  - Uses proper Telegram navigation for seamless user experience
 
 ### Latest Updates
 - ✅ **Intro Countdown Animation** (Стартовый отсчёт) - ФИНАЛЬНАЯ ВЕРСИЯ:
