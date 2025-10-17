@@ -1,0 +1,83 @@
+Что поддерживает Telegram Mini Apps
+
+В API есть объект Telegram.WebApp.HapticFeedback с методами:
+
+impactOccurred(style) — короткий «удар» ('light'|'medium'|'heavy')
+
+notificationOccurred(type) — сигнал «успех/ошибка/предупреждение»
+
+selectionChanged() — лёгкий тик при выборе
+Это задокументировано в справке Mini Apps и SDK. 
+Telegram
++1
+
+В SDK есть проверки доступности, например hapticFeedback.impactOccurred.isAvailable() — используйте её перед вызовом. 
+Telegram Mini Apps Docs
+
+Фолбэк — стандартный Web Vibration API navigator.vibrate(ms). Помните, что поддержка зависит от устройства/браузера и может игнорироваться без ошибок. 
+developer.mozilla.org
+
+Замечание по надёжности: на части Android-клиентов Telegram раньше были кейсы, когда некоторые хэптики не срабатывали, поэтому важно иметь фолбэк и не падать, если тактильной отдачи нет. 
+GitHub
+
+Рекомендованный шаблон (встроить в ваш отсчёт)
+<script>
+/** Инициализация TG WebApp (желательно вызвать как можно раньше) */
+document.addEventListener('DOMContentLoaded', () => {
+  try { window.Telegram?.WebApp?.ready?.(); } catch(_) {}
+});
+
+/** Трекер первого жеста пользователя — пригодится для vibrate() */
+let hasInteracted = false;
+window.addEventListener('pointerdown', () => { hasInteracted = true; }, { once: true });
+
+/** Универсальный вызов хэптика для цифры n */
+function hapticForDigit(n) {
+  try {
+    const HF = window.Telegram?.WebApp?.HapticFeedback;
+    // 1) Нативный хэптик через Telegram, если доступен
+    if (HF?.impactOccurred) {
+      // В SDK 2.x есть метод доступности; в чистом API просто вызываем и ловим ошибки.
+      HF.impactOccurred(n === 1 ? 'heavy' : 'medium'); // пик цифры
+      return;
+    }
+  } catch(_) { /* переходим к фолбэку */ }
+
+  // 2) Фолбэк: Web Vibration API — дергаем только ПОСЛЕ первого жеста пользователя
+  try {
+    if (hasInteracted && 'vibrate' in navigator) {
+      navigator.vibrate(30); // короткий импульс
+    }
+  } catch(_) {}
+}
+
+/** Пример интеграции: вы зовёте это в момент пикового масштаба цифры */
+function onDigitPeak(n) {
+  hapticForDigit(n);
+}
+</script>
+
+
+Как встроить в анимацию:
+
+В каждой итерации отсчёта (5→1) ставьте setTimeout(onDigitPeak, T*0.35, n) — примерно на 35% длительности кадра, когда цифра «ударяет» (вы её уже используете для пик-масштаба).
+
+Для «1» используйте стиль 'heavy', для остальных — 'medium'.
+
+Частые подводные камни и как их обойти
+
+Требование «жеста». Некоторые окружения блокируют вибрацию, пока пользователь не совершил действие. Поэтому мы и:
+
+отслеживаем первый pointerdown;
+
+используем HapticFeedback (он обрабатывается самим Telegram-клиентом);
+
+а navigator.vibrate включаем только после жеста. 
+Telegram Mini Apps Docs
++1
+
+Не гарантируется на всех устройствах. Даже при корректном коде тактильная отдача может отсутствовать (настройки ОС, модель, версия Telegram). Не завязывайте на хэптики логику — это лишь улучшение UX. 
+GitHub
+
+Порядок инициализации. Вызовите Telegram.WebApp.ready() перед первым хэптиком и анимацией, чтобы клиент точно был готов. 
+Telegram

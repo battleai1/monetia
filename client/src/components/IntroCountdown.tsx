@@ -50,18 +50,34 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     }, 100);
   }, []);
 
-  // Хэптик с безопасной проверкой
+  // Хэптик с безопасной проверкой (прямой доступ к Telegram API)
   const haptic = (n: number) => {
+    const style = n === 1 ? 'heavy' : 'medium';
+    let hapticTriggered = false;
+    
+    // 1) Пробуем нативный хэптик через Telegram WebApp API
     try {
-      const hapticType = n === 1 ? 'heavy' : 'medium';
-      triggerHaptic(hapticType);
-      
-      // Фолбэк navigator.vibrate (только после user gesture)
-      if ('vibrate' in navigator && hasInteracted.current) {
-        navigator.vibrate(30);
+      const HF = window.Telegram?.WebApp?.HapticFeedback;
+      if (HF?.impactOccurred) {
+        console.log(`[Countdown] Attempting Telegram haptic: ${style} for digit ${n}`);
+        HF.impactOccurred(style);
+        hapticTriggered = true; // Пометка что попытались (но может не сработать в версии 6.0)
       }
     } catch (error) {
-      console.warn('[Countdown] Haptic error:', error);
+      console.warn('[Countdown] Telegram haptic error:', error);
+    }
+
+    // 2) ВСЕГДА пробуем фолбэк Web Vibration API (работает после user gesture)
+    try {
+      if ('vibrate' in navigator) {
+        // На смартфонах вибрация работает без user gesture в Telegram WebApp
+        const vibrated = navigator.vibrate(n === 1 ? 50 : 30);
+        console.log(`[Countdown] Vibrate ${n === 1 ? 'heavy' : 'medium'} for digit ${n}:`, vibrated);
+      } else {
+        console.log('[Countdown] Vibrate API not supported in browser');
+      }
+    } catch (error) {
+      console.warn('[Countdown] Vibrate error:', error);
     }
   };
 
