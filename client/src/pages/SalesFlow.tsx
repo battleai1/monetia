@@ -20,18 +20,18 @@ export default function SalesFlow() {
     return salesReels.map(reel => reel.videoUrl);
   }, [salesReels]);
 
-  // Предзагрузка видео начинается во время countdown и продолжается в фоне
-  const { loadedCount, totalCount, progress } = useVideoPreloader(
-    videoUrls,
-    videoUrls.length > 0
-  );
+  // ВРЕМЕННО ОТКЛЮЧЕНО: Предзагрузка создаёт дублирование звука!
+  // const { loadedCount, totalCount, progress } = useVideoPreloader(
+  //   videoUrls,
+  //   videoUrls.length > 0
+  // );
 
-  // Логируем прогресс предзагрузки
-  useEffect(() => {
-    if (loadedCount > 0) {
-      console.log(`[SalesFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
-    }
-  }, [loadedCount, totalCount, progress]);
+  // // Логируем прогресс предзагрузки
+  // useEffect(() => {
+  //   if (loadedCount > 0) {
+  //     console.log(`[SalesFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
+  //   }
+  // }, [loadedCount, totalCount, progress]);
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {

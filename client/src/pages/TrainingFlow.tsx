@@ -18,28 +18,31 @@ export default function TrainingFlow() {
     return lessons.map(lesson => lesson.videoUrl);
   }, [lessons]);
 
-  // Предзагрузка видео (всегда активна, независимо от UI)
-  const { loadedCount, totalCount, progress } = useVideoPreloader(
-    videoUrls,
-    videoUrls.length > 0
-  );
+  // ВРЕМЕННО ОТКЛЮЧЕНО: Предзагрузка создаёт дублирование звука!
+  // const { loadedCount, totalCount, progress } = useVideoPreloader(
+  //   videoUrls,
+  //   videoUrls.length > 0
+  // );
 
-  // Логируем прогресс предзагрузки
-  useEffect(() => {
-    if (loadedCount > 0) {
-      console.log(`[TrainingFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
-    }
-  }, [loadedCount, totalCount, progress]);
+  // // Логируем прогресс предзагрузки
+  // useEffect(() => {
+  //   if (loadedCount > 0) {
+  //     console.log(`[TrainingFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
+  //   }
+  // }, [loadedCount, totalCount, progress]);
 
-  // Скрываем UI прелоадера когда первое видео готово (но предзагрузка продолжается)
-  useEffect(() => {
-    if (loadedCount >= 1 && showPreloader) {
-      console.log('[TrainingFlow] First video ready, hiding UI preloader (background preloading continues)');
-      setTimeout(() => {
-        setShowPreloader(false);
-      }, 300);
-    }
-  }, [loadedCount, showPreloader]);
+  // // Скрываем UI прелоадера когда первое видео готово (но предзагрузка продолжается)
+  // useEffect(() => {
+  //   if (loadedCount >= 1 && showPreloader) {
+  //     console.log('[TrainingFlow] First video ready, hiding UI preloader (background preloading continues)');
+  //     setTimeout(() => {
+  //       setShowPreloader(false);
+  //     }, 300);
+  //   }
+  // }, [loadedCount, showPreloader]);
+
+  const loadedCount = 1; // Фейковое значение чтобы сразу показать контент
+  const totalCount = 1;
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {
