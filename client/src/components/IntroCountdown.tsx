@@ -56,11 +56,11 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
         console.warn('[Countdown] Vibrate API not supported');
       }
 
-      // Показываем СЛЕДУЮЩУЮ цифру на фоне в момент начала роста (через 540ms = 45% от 1200ms)
+      // Показываем СЛЕДУЮЩУЮ цифру на фоне через 100ms после начала взрыва (840ms + 100ms = 940ms)
       if (i < DIGITS.length - 1) {
         setTimeout(() => {
           setNextDigit(DIGITS[i + 1]);
-        }, 540);
+        }, 940);
       }
 
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
