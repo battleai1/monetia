@@ -59,20 +59,20 @@ export function initTelegramBot() {
         await ctx.approveChatJoinRequest(userId);
         console.log('[Telegram Bot] Join request approved for user:', userId);
 
-        // Получаем информацию о боте и создаем WebApp URL
-        const botInfo = await bot!.telegram.getMe();
-        const webAppUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://neurotrraffic.replit.app'}?startapp=s1`;
+        // Создаем валидированный WebApp URL с deep link
+        const domain = process.env.REPLIT_DEV_DOMAIN || 'https://neurotrraffic.replit.app';
+        const webAppUrl = `${domain.startsWith('http') ? domain : `https://${domain}`}?startapp=s1`;
 
         // Отправляем приветственное сообщение В КАНАЛ (не в DM)
         // Telegram запрещает ботам инициировать приватные чаты
-        const welcomeMessage = `Привет, ${userName}! 👋\n\n+10 руб. - продолжи просмотр`;
+        const welcomeMessage = `Привет, ${userName}!\n\n+10 руб. - продолжи просмотр`;
         
         await bot!.telegram.sendMessage(chatId, welcomeMessage, {
           reply_markup: {
             inline_keyboard: [
               [
                 {
-                  text: '🚀 Открыть приложение',
+                  text: 'Открыть приложение',
                   web_app: { url: webAppUrl },
                 },
               ],
