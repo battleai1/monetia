@@ -4,14 +4,8 @@ import Hls from 'hls.js';
 export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const isActiveRef = useRef(isActive);
-  
-  // Обновляем ref при изменении isActive (БЕЗ перезапуска эффекта)
-  useEffect(() => {
-    isActiveRef.current = isActive;
-  }, [isActive]);
 
-  // Создаём HLS ОДИН РАЗ при монтировании, ТОЛЬКО если активно
+  // Создаём HLS ВСЕГДА при монтировании (независимо от isActive)
   useEffect(() => {
     const video = videoRef.current;
     if (!video) {
@@ -19,14 +13,8 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       return;
     }
 
-    // НЕ создаём HLS для неактивных видео
-    if (!isActiveRef.current) {
-      console.log('[useHLS] SKIP - not active on mount', videoId);
-      return;
-    }
-
     const isHLS = videoUrl.includes('.m3u8');
-    console.log('[useHLS] Mount effect -', videoId, 'creating HLS instance');
+    console.log('[useHLS] Mount -', videoId);
     
     if (isHLS) {
       if (Hls.isSupported()) {

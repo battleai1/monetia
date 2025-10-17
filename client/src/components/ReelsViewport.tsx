@@ -112,9 +112,13 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* Рендерим ВСЕ видео сразу - React НЕ будет их размонтировать! */}
+        {/* Рендерим только PREV + CURRENT + NEXT чтобы минимизировать HLS инстансы */}
         {children.map((child, index) => {
           if (!isValidElement(child)) return null;
+          
+          // Рендерим только видео рядом с текущим
+          const distance = Math.abs(index - currentIndex);
+          if (distance > 1) return null; // Skip далёкие видео
           
           const isActive = index === currentIndex;
           const position = (index - currentIndex) * 100; // -100%, 0%, +100%

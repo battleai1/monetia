@@ -20,10 +20,10 @@ export default function SalesFlow() {
     return salesReels.map(reel => reel.videoUrl);
   }, [salesReels]);
 
-  // Предзагрузка видео начинается во время countdown и продолжается в фоне
+  // ВРЕМЕННО ОТКЛЮЧЕНО: Предзагрузка видео начинается во время countdown и продолжается в фоне
   const { loadedCount, totalCount, progress } = useVideoPreloader(
     videoUrls,
-    videoUrls.length > 0
+    false // ОТКЛЮЧЕНО для тестирования дублирования звука
   );
 
   // Логируем прогресс предзагрузки
