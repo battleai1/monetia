@@ -31,6 +31,14 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
 - ✅ Bot must be admin in target channel to auto-approve join requests
 
+### HLS Audio Duplication Fix (October 17, 2025)
+- ✅ Fixed critical bug where users heard double audio playback
+- ✅ Root cause: `useHLS` hook recreated HLS instances on `isActive` changes
+- ✅ Solution: Removed `enabled` parameter, HLS now persists across reel swipes
+- ✅ HLS lifecycle: Only creates/destroys on videoUrl change or unmount
+- ✅ Performance: Eliminated 3+ HLS reinitializations per 30s, reduced memory churn
+- ✅ Video playback controls (pause/play/speed) now work with persistent HLS instance
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
