@@ -60,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useHLS(videoUrl);
+  const videoRef = useHLS(videoUrl, isActive);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
@@ -191,16 +191,21 @@ export default function ReelCard({
     const video = videoRef.current;
     if (!video) return;
 
+    console.log('[ReelCard] Activity changed - id:', id, 'isActive:', isActive, 'isHoldingPause:', isHoldingPause);
+
     if (isHoldingPause) {
       video.pause();
     } else if (isActive) {
       // Вызываем play() только если видео на паузе и не закончилось
-      // НЕ зависит от isHoldingSpeed - изменение скорости не должно вызывать play()
       if (video.paused && !video.ended) {
+        console.log('[ReelCard] Starting playback for:', id);
         video.play().catch(() => {});
       }
+    } else {
+      console.log('[ReelCard] Pausing inactive video:', id);
+      video.pause();
     }
-  }, [isHoldingPause, isActive]);
+  }, [isHoldingPause, isActive, id]);
 
   useEffect(() => {
     const video = videoRef.current;
