@@ -116,12 +116,17 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         {children.map((child, index) => {
           if (!isValidElement(child)) return null;
           
-          // Рендерим только видео рядом с текущим
-          const distance = Math.abs(index - currentIndex);
-          if (distance > 1) return null; // Skip далёкие видео
+          // Рендерим только prev/current/next: [currentIndex-1, currentIndex, currentIndex+1]
+          if (index < currentIndex - 1 || index > currentIndex + 1) {
+            return null; // Skip далёкие видео
+          }
           
           const isActive = index === currentIndex;
           const position = (index - currentIndex) * 100; // -100%, 0%, +100%
+          
+          // Получаем STABLE KEY из props.id чтобы избежать ремонтирования
+          const childProps = (child as React.ReactElement<any>).props;
+          const stableKey = childProps.id || (child as React.ReactElement<any>).key || index;
           
           const childWithProps = cloneElement(child as React.ReactElement<any>, {
             isActive,
@@ -132,7 +137,7 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
 
           return (
             <div
-              key={(child as React.ReactElement<any>).key}
+              key={stableKey}
               className="absolute inset-0 w-full h-full"
               style={{ transform: `translateY(${position}%)` }}
             >

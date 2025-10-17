@@ -78,7 +78,7 @@ export default function ReelCard({
     if (!video) return;
 
     if (isActive) {
-      console.log('[ReelCard] PLAY -', id);
+      console.log('[ReelCard] ▶️ PLAY -', id);
       // Убираем poster чтобы показать первый кадр видео
       if (video.poster) {
         video.poster = '';
@@ -98,9 +98,20 @@ export default function ReelCard({
         });
       }
     } else {
-      console.log('[ReelCard] PAUSE -', id);
+      console.log('[ReelCard] ⏸️ PAUSE -', id);
+      // КРИТИЧНО: Полностью останавливаем видео
       video.pause();
-      video.currentTime = 0; // Сброс на начало
+      video.currentTime = 0;
+      video.muted = true; // Гарантируем что звук выключен
+      
+      // Проверяем что видео действительно остановилось
+      setTimeout(() => {
+        if (!video.paused) {
+          console.log('[ReelCard] ⚠️ Video still playing after pause!', id, 'forcing stop');
+          video.pause();
+          video.muted = true;
+        }
+      }, 100);
     }
   }, [isActive, id]);
 
