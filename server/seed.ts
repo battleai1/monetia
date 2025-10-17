@@ -2,11 +2,10 @@ import { db } from "./db";
 import { videos, type InsertVideo } from "@shared/schema";
 import { sql } from "drizzle-orm";
 
-// Видео URL - используется тестовое видео (вертикальное)
-// ВАЖНО: Embed ссылка https://player.mediadelivery.net/embed/511135/32fd1294-ede8-40c4-8ac6-c58073edc03e 
-// не работает с HTML5 <video>. Нужна прямая ссылка на MP4 или HLS плейлист.
-// Временно используем тестовое видео
-const VIDEO_URL = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+// Реальное видео с Bunny CDN (HLS)
+// Embed: https://player.mediadelivery.net/embed/511135/32fd1294-ede8-40c4-8ac6-c58073edc03e
+// HLS плейлист для HTML5 video
+const VIDEO_URL = "https://vz-6f283eac-64a.b-cdn.net/32fd1294-ede8-40c4-8ac6-c58073edc03e/playlist.m3u8";
 
 const SALES_REELS: InsertVideo[] = [
   {
