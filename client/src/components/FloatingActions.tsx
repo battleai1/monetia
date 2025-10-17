@@ -1,7 +1,7 @@
 import { Heart, MessageCircle, Send, Volume2, VolumeX } from 'lucide-react';
 import { useState } from 'react';
-import ShareSheet from './ShareSheet';
 import { useAppStore } from '@/store/app.store';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface FloatingActionsProps {
   onLike?: () => void;
@@ -17,8 +17,8 @@ interface FloatingActionsProps {
 export default function FloatingActions({ onLike, onComment, onShare, onMenu, commentCount = 23, likeCount: initialLikeCount = 3214, shareCount = 2200, reelId }: FloatingActionsProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [showShareSheet, setShowShareSheet] = useState(false);
   const { isMuted, toggleMute } = useAppStore();
+  const { openTelegramLink } = useTelegram();
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -34,7 +34,13 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
 
   const handleShare = () => {
     console.log('Share clicked');
-    setShowShareSheet(true);
+    
+    const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
+    const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
+    
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    
+    openTelegramLink(telegramShareUrl);
     onShare?.();
   };
 
@@ -91,12 +97,6 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
           )}
         </button>
       </div>
-
-      <ShareSheet 
-        isOpen={showShareSheet} 
-        onClose={() => setShowShareSheet(false)}
-        reelId={reelId}
-      />
     </>
   );
 }

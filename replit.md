@@ -73,10 +73,16 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Hold left/center of screen: pause video (no visual indicator)
   - Hold right edge of screen: 2x speed playback (no visual indicator)
   - Pointer events with smooth animations via Framer Motion
-- ✅ **Share Sheet Integration**:
-  - Custom bottom sheet for sharing instead of external redirect
-  - Telegram chat link and share options
-  - Dark themed with gradient icons
+- ✅ **Telegram Native Share Integration** (Финальная версия):
+  - Uses Telegram WebApp API `openTelegramLink` method for sharing without browser redirect
+  - **Smart fallback system**:
+    - Real Telegram WebApp (with initData): Uses native `openTelegramLink` for seamless in-app sharing
+    - Desktop browser: Opens in new tab (`window.open`) to avoid main window redirect
+    - Older Telegram versions: Fallback to `openLink` method
+  - Share button (самолетик) opens native Telegram contact picker with pre-filled message
+  - Subscribe to channel opens directly in Telegram without leaving WebApp
+  - Custom share sheet UI for additional options (Telegram chat, share to contacts)
+  - Comprehensive console logging for debugging different environments
 - ✅ **Instagram Reels-style Comments System**:
   - Synchronized animations: video scales to 57% and moves down 45px when comments open
   - Video becomes clean vertical rectangle with rounded corners (28px)

@@ -29,6 +29,8 @@ interface TelegramWebApp {
     selectionChanged: () => void;
   };
   openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
+  openTelegramLink: (url: string) => void;
+  switchInlineQuery: (query: string, chatTypes?: string[]) => void;
   initDataUnsafe: {
     user?: {
       id: number;
@@ -74,9 +76,35 @@ export const useTelegram = () => {
     webApp?.HapticFeedback?.impactOccurred(style);
   };
 
+  const shareMessage = (text: string, chatTypes?: string[]) => {
+    if (webApp?.switchInlineQuery) {
+      console.log('[Telegram] Opening native share with switchInlineQuery');
+      webApp.switchInlineQuery(text, chatTypes || ['users', 'groups', 'channels']);
+    } else {
+      console.warn('[Telegram] switchInlineQuery not available');
+    }
+  };
+
+  const openTelegramLink = (url: string) => {
+    const isRealTelegramWebApp = webApp?.initData && webApp.initData.length > 0;
+    
+    if (webApp?.openTelegramLink && isRealTelegramWebApp) {
+      console.log('[Telegram] Opening Telegram link without redirect:', url);
+      webApp.openTelegramLink(url);
+    } else if (!isRealTelegramWebApp) {
+      console.warn('[Telegram] Not in real Telegram WebApp, opening in new tab to avoid redirect');
+      window.open(url, '_blank');
+    } else {
+      console.warn('[Telegram] openTelegramLink not available but in Telegram WebApp, using openLink');
+      webApp?.openLink(url);
+    }
+  };
+
   return {
     webApp,
     user: webApp?.initDataUnsafe?.user,
     triggerHaptic,
+    shareMessage,
+    openTelegramLink,
   };
 };

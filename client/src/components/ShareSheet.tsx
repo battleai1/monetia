@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/sheet";
 import { Send, MessageCircle, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface ShareSheetProps {
   isOpen: boolean;
@@ -14,22 +15,19 @@ interface ShareSheetProps {
 }
 
 export default function ShareSheet({ isOpen, onClose, reelId }: ShareSheetProps) {
+  const { openTelegramLink } = useTelegram();
+
   const handleTelegramShare = () => {
-    if (window.Telegram?.WebApp) {
-      const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
-      const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
-      
-      window.Telegram.WebApp.openLink(
-        `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`
-      );
-    }
+    const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
+    const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
+    
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    openTelegramLink(telegramShareUrl);
     onClose();
   };
 
   const handleTelegramContact = () => {
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openLink('https://t.me/+xxtfdN-63QNlNWFi');
-    }
+    openTelegramLink('https://t.me/+xxtfdN-63QNlNWFi');
     onClose();
   };
 
