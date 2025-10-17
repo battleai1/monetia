@@ -7,15 +7,22 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 ## Recent Changes (October 2025)
 
 ### Latest Updates
-- ✅ **Intro Countdown Animation** (Стартовый отсчёт):
-  - Полноэкранный обратный отсчёт 5→4→3→2→1 перед первым видео
-  - Анимации: scale (0.7→1.0→2.0), blur (0→10px), fade (0→1→0)
+- ✅ **Intro Countdown Animation** (Стартовый отсчёт) - ОБНОВЛЕНО:
+  - Полноэкранный обратный отсчёт 5→4→3→2→1 перед первым видео (чёрный фон)
+  - **Плавная анимация 60+ FPS** с GPU-ускорением (transform, backfaceVisibility)
+  - **Драматичная анимация цифр**: 
+    - scale: 0.5→1.0→1.0→1.2→4.0 (мощное увеличение и рассеивание)
+    - blur: 0→0→0→2px→30px (сильный эффект размытия)
+    - opacity: 0→1→1→1→0 (плавное появление/исчезновение)
+  - Длительность каждой цифры: **1200ms** (медленнее, плавнее)
+  - Easing: cubic-bezier(0.23, 1, 0.32, 1) для органичной анимации
   - Хэптики через Telegram WebApp API (medium на 5-2, heavy на 1)
+  - **Последовательность**: таймер → "Ты готов(а)?" (1с) → видео запускается
+  - Видео НЕ рендерится до завершения countdown (showCountdown контролирует)
   - Сохранение в localStorage (показывается только при первом запуске)
   - Кнопка "Пропустить" в правом верхнем углу
-  - Поддержка prefers-reduced-motion (упрощённая анимация)
+  - Поддержка prefers-reduced-motion (упрощённая анимация без scale/blur)
   - Доступность: aria-live для объявления цифр
-  - Длительность каждой цифры: 700ms, fade-out после: 300ms
 
 ### Completed Implementation
 - ✅ Full Instagram Reels-style UI with dark theme (black-purple gradients, neon accents)

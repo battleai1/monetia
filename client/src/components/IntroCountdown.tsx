@@ -5,7 +5,7 @@ import { useTelegram } from '@/hooks/useTelegram';
 const APP_VERSION = '1';
 const STORAGE_KEY = `introCountdownSeen_v${APP_VERSION}`;
 const DIGITS = [5, 4, 3, 2, 1];
-const DIGIT_DURATION = 700; // ms
+const DIGIT_DURATION = 1200; // ms - увеличено для более плавной анимации
 
 interface IntroCountdownProps {
   onComplete: () => void;
@@ -107,25 +107,28 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                       key={currentDigit}
                       initial={{ 
                         opacity: prefersReducedMotion ? 1 : 0, 
-                        scale: prefersReducedMotion ? 1 : 0.7,
+                        scale: prefersReducedMotion ? 1 : 0.5,
                         filter: 'blur(0px)'
                       }}
                       animate={prefersReducedMotion ? {
                         opacity: [1, 0],
                       } : { 
-                        opacity: [0, 1, 1, 0],
-                        scale: [0.7, 1.0, 1.0, 2.0],
-                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(10px)']
+                        opacity: [0, 1, 1, 1, 0],
+                        scale: [0.5, 1.0, 1.0, 1.2, 4.0],
+                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(30px)']
                       }}
                       transition={{
                         duration: DIGIT_DURATION / 1000,
-                        times: prefersReducedMotion ? [0, 1] : [0, 0.25, 0.5, 1],
-                        ease: [0.4, 0, 0.2, 1]
+                        times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
+                        ease: [0.23, 1, 0.32, 1]
                       }}
                       className="text-white font-black leading-none"
                       style={{
                         fontSize: 'clamp(56px, 20vmin, 140px)',
-                        willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity'
+                        willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity',
+                        transform: 'translateZ(0)',
+                        backfaceVisibility: 'hidden',
+                        perspective: '1000px'
                       }}
                     >
                       {currentDigit}
@@ -138,10 +141,18 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
             {/* "Ты готов(а)?" - показывается ПОСЛЕ отсчёта */}
             {showReadyText && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                  duration: 0.4,
+                  ease: [0.23, 1, 0.32, 1]
+                }}
                 className="text-white font-bold"
-                style={{ fontSize: 'clamp(20px, 5vmin, 32px)' }}
+                style={{ 
+                  fontSize: 'clamp(20px, 5vmin, 32px)',
+                  transform: 'translateZ(0)',
+                  backfaceVisibility: 'hidden'
+                }}
               >
                 Ты готов(а)?
               </motion.div>

@@ -75,6 +75,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint для очистки localStorage флагов
+  app.post("/api/debug/clear-storage/:username", async (req, res) => {
+    const { username } = req.params;
+    
+    return res.json({
+      success: true,
+      username,
+      message: `Инструкция для очистки localStorage для пользователя ${username}`,
+      jsCode: `localStorage.removeItem('introCountdownSeen_v1'); console.log('Флаг очищен!');`
+    });
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
