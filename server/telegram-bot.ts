@@ -63,24 +63,43 @@ export function initTelegramBot() {
         const domain = process.env.REPLIT_DEV_DOMAIN || 'https://neurotrraffic.replit.app';
         const webAppUrl = `${domain.startsWith('http') ? domain : `https://${domain}`}?startapp=s1`;
 
-        // Отправляем приветственное сообщение В КАНАЛ (не в DM)
-        // Telegram запрещает ботам инициировать приватные чаты
         const welcomeMessage = `Привет, ${userName}!\n\n+10 руб. - продолжи просмотр`;
         
-        await bot!.telegram.sendMessage(chatId, welcomeMessage, {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: 'Открыть приложение',
-                  web_app: { url: webAppUrl },
-                },
+        // Пытаемся отправить сообщение в личку пользователю
+        try {
+          await bot!.telegram.sendMessage(userId, welcomeMessage, {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: 'Открыть приложение',
+                    web_app: { url: webAppUrl },
+                  },
+                ],
               ],
-            ],
-          },
-        });
-
-        console.log('[Telegram Bot] Welcome message sent to channel for user:', userName);
+            },
+          });
+          console.log('[Telegram Bot] ✅ Welcome message sent to user DM:', userName);
+        } catch (dmError) {
+          // Если не получилось отправить в личку - отправляем в канал
+          const dmErrorMessage = dmError instanceof Error ? dmError.message : String(dmError);
+          console.log('[Telegram Bot] ⚠️ Cannot send DM to user (user must start chat first):', dmErrorMessage);
+          console.log('[Telegram Bot] Sending welcome message to channel instead...');
+          
+          await bot!.telegram.sendMessage(chatId, welcomeMessage, {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: 'Открыть приложение',
+                    web_app: { url: webAppUrl },
+                  },
+                ],
+              ],
+            },
+          });
+          console.log('[Telegram Bot] ✅ Welcome message sent to channel for user:', userName);
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         
