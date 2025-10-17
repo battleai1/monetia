@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/app.store';
+import { useHLS } from '@/hooks/useHLS';
 import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
 import LessonCaption from './LessonCaption';
@@ -59,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useHLS(videoUrl, isActive);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
