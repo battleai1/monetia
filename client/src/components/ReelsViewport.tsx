@@ -112,19 +112,19 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* Рендерим только PREV + CURRENT + NEXT чтобы минимизировать HLS инстансы */}
+        {/* КРИТИЧНО: filter ПЕРЕД map для РЕАЛЬНОГО размонтирования компонентов */}
         {children.map((child, index) => {
-          if (!isValidElement(child)) return null;
-          
-          // Рендерим только prev/current/next: [currentIndex-1, currentIndex, currentIndex+1]
+          // Рендерим только prev/current/next
           if (index < currentIndex - 1 || index > currentIndex + 1) {
-            return null; // Skip далёкие видео
+            return null;
           }
           
-          const isActive = index === currentIndex;
-          const position = (index - currentIndex) * 100; // -100%, 0%, +100%
+          if (!isValidElement(child)) return null;
           
-          // Получаем STABLE KEY из props.id чтобы избежать ремонтирования
+          const isActive = index === currentIndex;
+          const position = (index - currentIndex) * 100;
+          
+          // STABLE KEY из props.id  
           const childProps = (child as React.ReactElement<any>).props;
           const stableKey = childProps.id || (child as React.ReactElement<any>).key || index;
           

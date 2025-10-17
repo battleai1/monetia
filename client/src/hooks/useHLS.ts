@@ -5,21 +5,16 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
-  // Создаём HLS ВСЕГДА при монтировании (независимо от isActive)
+  // Создаём HLS ОДИН РАЗ при монтировании
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) {
-      console.log('[useHLS] No video element', videoId);
-      return;
-    }
+    if (!video) return;
 
     const isHLS = videoUrl.includes('.m3u8');
-    console.log('[useHLS] Mount -', videoId);
     
     if (isHLS) {
       if (Hls.isSupported()) {
         if (!hlsRef.current) {
-          console.log('[useHLS] ✅ CREATE HLS', videoId);
           const hls = new Hls({
             enableWorker: true,
             lowLatencyMode: true,
@@ -30,13 +25,8 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
           hls.loadSource(videoUrl);
           hls.attachMedia(video);
           
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            console.log('[useHLS] ✅ READY', videoId);
-          });
-          
           hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
-              console.error('[useHLS] ❌ FATAL', videoId, data.type);
               switch (data.type) {
                 case Hls.ErrorTypes.NETWORK_ERROR:
                   hls.startLoad();
@@ -53,23 +43,28 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
           });
         }
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        console.log('[useHLS] Native HLS', videoId);
         video.src = videoUrl;
       }
     } else {
-      console.log('[useHLS] Direct src', videoId);
       video.src = videoUrl;
     }
 
-    // Cleanup ТОЛЬКО при unmount компонента или смене videoUrl
+    // Cleanup при unmount
     return () => {
       if (hlsRef.current) {
-        console.log('[useHLS] 🗑️ DESTROY', videoId);
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
     };
   }, [videoUrl, videoId]);
+  
+  // КРИТИЧНО: Уничтожаем HLS когда видео становится неактивным!
+  useEffect(() => {
+    if (!isActive && hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+  }, [isActive]);
 
   return videoRef;
 }
