@@ -1,6 +1,7 @@
 import { useLocation } from 'wouter';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLessons } from '@/hooks/useVideos';
+import { useVideoPreloader } from '@/hooks/useVideoPreloader';
 import ReelsViewport from '@/components/ReelsViewport';
 import ReelCard from '@/components/ReelCard';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -9,6 +10,36 @@ export default function TrainingFlow() {
   const [, setLocation] = useLocation();
   const { startParam } = useTelegram();
   const { data: lessons, isLoading } = useLessons();
+  const [showPreloader, setShowPreloader] = useState(true);
+
+  // Собираем URLs для предзагрузки
+  const videoUrls = useMemo(() => {
+    if (!lessons) return [];
+    return lessons.map(lesson => lesson.videoUrl);
+  }, [lessons]);
+
+  // Предзагрузка видео
+  const { loadedCount, totalCount, progress } = useVideoPreloader(
+    videoUrls,
+    showPreloader && videoUrls.length > 0
+  );
+
+  // Логируем прогресс предзагрузки
+  useEffect(() => {
+    if (loadedCount > 0) {
+      console.log(`[TrainingFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
+    }
+  }, [loadedCount, totalCount, progress]);
+
+  // Скрываем прелоадер когда первое видео готово
+  useEffect(() => {
+    if (loadedCount >= 1 && showPreloader) {
+      console.log('[TrainingFlow] First video ready, hiding preloader');
+      setTimeout(() => {
+        setShowPreloader(false);
+      }, 300);
+    }
+  }, [loadedCount, showPreloader]);
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {
@@ -27,10 +58,15 @@ export default function TrainingFlow() {
     setLocation('/training/final');
   };
 
-  if (isLoading || !lessons) {
+  if (isLoading || !lessons || showPreloader) {
     return (
-      <div className="h-viewport w-viewport bg-black flex items-center justify-center">
+      <div className="h-viewport w-viewport bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-white text-lg">Загрузка...</div>
+        {totalCount > 0 && (
+          <div className="text-white/60 text-sm">
+            {loadedCount} / {totalCount} видео
+          </div>
+        )}
       </div>
     );
   }
