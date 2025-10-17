@@ -74,7 +74,9 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
             video.volume = 0; // КРИТИЧНО: отключаем звук полностью
             video.play().then(() => {
               setTimeout(() => {
+                // 1. STOP VIDEO
                 video.pause();
+                video.currentTime = 0;
                 
                 const buffered = video.buffered;
                 if (buffered.length > 0) {
@@ -82,14 +84,22 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
                   console.log(`[VideoPreloader] Video ${index} buffered ${bufferedEnd.toFixed(1)}s`);
                 }
                 
-                // КРИТИЧНО: уничтожаем HLS после буферизации!
+                // 2. DESTROY HLS
                 hls.destroy();
                 console.log(`[VideoPreloader] HLS destroyed for video ${index}`);
                 
+                // 3. REMOVE VIDEO FROM DOM
+                video.src = '';
+                video.load(); // Очищаем буфер
+                if (video.parentNode) {
+                  video.parentNode.removeChild(video);
+                }
+                console.log(`[VideoPreloader] Video element removed for video ${index}`);
+                
                 preloadedVideos.current.set(url, {
                   url,
-                  hls: null, // HLS уже уничтожен
-                  videoElement: video,
+                  hls: null,
+                  videoElement: video, // Хранится только для ref, но удалён из DOM
                   loaded: true,
                 });
 
@@ -99,8 +109,18 @@ export function useVideoPreloader(videoUrls: string[], enabled: boolean = false)
             }).catch(() => {
               console.log(`[VideoPreloader] Silent play failed for video ${index}, but HLS initialized`);
               
-              // Уничтожаем HLS даже при ошибке
+              // 1. DESTROY HLS
               hls.destroy();
+              console.log(`[VideoPreloader] HLS destroyed for video ${index} (after failed play)`);
+              
+              // 2. REMOVE VIDEO FROM DOM
+              video.pause();
+              video.src = '';
+              video.load();
+              if (video.parentNode) {
+                video.parentNode.removeChild(video);
+              }
+              console.log(`[VideoPreloader] Video element removed for video ${index} (after failed play)`);
               
               preloadedVideos.current.set(url, {
                 url,

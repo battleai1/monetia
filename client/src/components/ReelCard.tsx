@@ -78,6 +78,7 @@ export default function ReelCard({
     if (!video) return;
 
     if (isActive) {
+      console.log('[ReelCard] PLAY -', id);
       // Убираем poster чтобы показать первый кадр видео
       if (video.poster) {
         video.poster = '';
@@ -97,9 +98,11 @@ export default function ReelCard({
         });
       }
     } else {
+      console.log('[ReelCard] PAUSE -', id);
       video.pause();
+      video.currentTime = 0; // Сброс на начало
     }
-  }, [isActive]);
+  }, [isActive, id]);
 
   // Принудительный запуск видео после countdown (для мобильных устройств)
   useEffect(() => {
