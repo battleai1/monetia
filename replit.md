@@ -36,6 +36,10 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
   - Автоматическая попытка запуска с звуком, затем без звука если заблокировано
   - preload="auto" для быстрой загрузки первого видео
   - playsInline для корректной работы на iOS
+  - **forcePlay механизм** для мобильных устройств после countdown:
+    - Активируется через 100ms после завершения countdown
+    - Принудительный запуск первого видео с двухступенчатой стратегией (звук → muted)
+    - Логирование для отладки мобильных браузеров
 
 ### Completed Implementation
 - ✅ Full Instagram Reels-style UI with dark theme (black-purple gradients, neon accents)

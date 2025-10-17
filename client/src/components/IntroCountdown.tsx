@@ -36,16 +36,24 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
       setCurrentDigit(digit);
       
       // Хэптик и вибрация СРАЗУ при появлении цифры
-      if (digit === 1) {
-        triggerHaptic('heavy');
-        if (navigator.vibrate) {
-          navigator.vibrate(100);
+      const vibrationDuration = digit === 1 ? 100 : 50;
+      const hapticType = digit === 1 ? 'heavy' : 'medium';
+      
+      console.log(`[Countdown] Digit ${digit} - triggering vibration (${vibrationDuration}ms)`);
+      
+      // Telegram Haptic
+      triggerHaptic(hapticType);
+      
+      // Navigator Vibrate API
+      if ('vibrate' in navigator) {
+        try {
+          const vibrateResult = navigator.vibrate(vibrationDuration);
+          console.log(`[Countdown] Vibrate API result:`, vibrateResult);
+        } catch (error) {
+          console.error('[Countdown] Vibrate API error:', error);
         }
       } else {
-        triggerHaptic('medium');
-        if (navigator.vibrate) {
-          navigator.vibrate(50);
-        }
+        console.warn('[Countdown] Vibrate API not supported');
       }
 
       // Показываем СЛЕДУЮЩУЮ цифру на фоне в момент начала роста (через 540ms = 45% от 1200ms)

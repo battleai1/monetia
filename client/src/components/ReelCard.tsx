@@ -31,6 +31,7 @@ interface ReelCardProps {
   comments?: Comment[];
   likeCount?: number;
   shareCount?: number;
+  forcePlay?: boolean;
 }
 
 export default function ReelCard({
@@ -56,6 +57,7 @@ export default function ReelCard({
   comments = [],
   likeCount,
   shareCount,
+  forcePlay = false,
 }: ReelCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showHook, setShowHook] = useState(true);
@@ -92,6 +94,29 @@ export default function ReelCard({
       video.pause();
     }
   }, [isActive]);
+
+  // Принудительный запуск видео после countdown (для мобильных устройств)
+  useEffect(() => {
+    if (forcePlay && isActive) {
+      const video = videoRef.current;
+      if (!video) return;
+
+      console.log('[Video] Force play triggered (mobile fix after countdown)');
+      
+      // Пробуем запустить со звуком
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log('[Video] Force play blocked, trying with muted:', error.message);
+          video.muted = true;
+          video.play().catch(err => {
+            console.error('[Video] Force play failed even with muted:', err);
+          });
+        });
+      }
+    }
+  }, [forcePlay, isActive]);
 
   useEffect(() => {
     const video = videoRef.current;

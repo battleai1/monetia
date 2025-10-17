@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { salesReels } from '@/lib/content';
 import ReelsViewport from '@/components/ReelsViewport';
@@ -8,6 +8,7 @@ import IntroCountdown from '@/components/IntroCountdown';
 export default function SalesFlow() {
   const [, setLocation] = useLocation();
   const [showCountdown, setShowCountdown] = useState(true);
+  const [forcePlayFirst, setForcePlayFirst] = useState(false);
 
   const handleFinalCTA = () => {
     setLocation('/training');
@@ -15,7 +16,19 @@ export default function SalesFlow() {
 
   const handleCountdownComplete = () => {
     setShowCountdown(false);
+    // Принудительно запускаем первое видео после countdown
+    setTimeout(() => {
+      setForcePlayFirst(true);
+    }, 100);
   };
+
+  useEffect(() => {
+    if (forcePlayFirst) {
+      // Сбрасываем флаг после применения
+      const timer = setTimeout(() => setForcePlayFirst(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [forcePlayFirst]);
 
   return (
     <div className="h-viewport w-viewport bg-black">
@@ -23,7 +36,7 @@ export default function SalesFlow() {
       
       {!showCountdown && (
         <ReelsViewport totalReels={salesReels.length}>
-        {salesReels.map((reel) => (
+        {salesReels.map((reel, index) => (
           <ReelCard
             key={reel.id}
             id={reel.id}
@@ -42,6 +55,7 @@ export default function SalesFlow() {
             comments={reel.comments}
             likeCount={reel.likeCount}
             shareCount={reel.shareCount}
+            forcePlay={index === 0 ? forcePlayFirst : false}
           />
         ))}
       </ReelsViewport>
