@@ -101,7 +101,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                 aria-live="assertive" 
                 aria-atomic="true"
               >
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   {currentDigit !== null && (
                     <motion.div
                       key={currentDigit}
@@ -117,12 +117,17 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                         scale: [0.5, 1.0, 1.0, 1.2, 8.0],
                         filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
                       }}
+                      exit={{
+                        opacity: 0,
+                        scale: 8.0,
+                        filter: 'blur(40px)'
+                      }}
                       transition={{
                         duration: DIGIT_DURATION / 1000,
                         times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
                         ease: [0.23, 1, 0.32, 1]
                       }}
-                      className="text-white font-black leading-none"
+                      className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
                       style={{
                         fontSize: 'clamp(56px, 20vmin, 140px)',
                         willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity',
