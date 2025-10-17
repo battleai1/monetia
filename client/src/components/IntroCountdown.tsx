@@ -14,6 +14,7 @@ interface IntroCountdownProps {
 export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [currentDigit, setCurrentDigit] = useState<number | null>(null);
+  const [showReadyText, setShowReadyText] = useState(false);
   const { triggerHaptic } = useTelegram();
   const hasShown = useRef(false);
   const prefersReducedMotion = useReducedMotion();
@@ -33,6 +34,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   }, []);
 
   const startCountdown = async () => {
+    // Отсчёт 5→4→3→2→1
     for (let i = 0; i < DIGITS.length; i++) {
       const digit = DIGITS[i];
       setCurrentDigit(digit);
@@ -49,8 +51,12 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
     }
 
-    // Небольшая пауза после последней цифры
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Убираем цифру
+    setCurrentDigit(null);
+    
+    // Показываем "Ты готов(а)?" на 1 секунду
+    setShowReadyText(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Fade out
     setIsVisible(false);
@@ -82,60 +88,64 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           data-testid="intro-countdown"
         >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/88" />
+          {/* Backdrop - полностью чёрный */}
+          <div className="absolute inset-0 bg-black" />
 
           {/* Content */}
           <div className="relative text-center px-6">
             {/* Digit */}
-            <div 
-              className="relative"
-              role="status" 
-              aria-live="assertive" 
-              aria-atomic="true"
-            >
-              <AnimatePresence mode="wait">
-                {currentDigit !== null && (
-                  <motion.div
-                    key={currentDigit}
-                    initial={{ 
-                      opacity: prefersReducedMotion ? 1 : 0, 
-                      scale: prefersReducedMotion ? 1 : 0.7,
-                      filter: 'blur(0px)'
-                    }}
-                    animate={prefersReducedMotion ? {
-                      opacity: [1, 0],
-                    } : { 
-                      opacity: [0, 1, 1, 0],
-                      scale: [0.7, 1.0, 1.0, 2.0],
-                      filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(10px)']
-                    }}
-                    transition={{
-                      duration: DIGIT_DURATION / 1000,
-                      times: prefersReducedMotion ? [0, 1] : [0, 0.25, 0.5, 1],
-                      ease: [0.4, 0, 0.2, 1]
-                    }}
-                    className="text-white font-black leading-none"
-                    style={{
-                      fontSize: 'clamp(56px, 20vmin, 140px)',
-                      willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity'
-                    }}
-                  >
-                    {currentDigit}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {!showReadyText && (
+              <div 
+                className="relative"
+                role="status" 
+                aria-live="assertive" 
+                aria-atomic="true"
+              >
+                <AnimatePresence mode="wait">
+                  {currentDigit !== null && (
+                    <motion.div
+                      key={currentDigit}
+                      initial={{ 
+                        opacity: prefersReducedMotion ? 1 : 0, 
+                        scale: prefersReducedMotion ? 1 : 0.7,
+                        filter: 'blur(0px)'
+                      }}
+                      animate={prefersReducedMotion ? {
+                        opacity: [1, 0],
+                      } : { 
+                        opacity: [0, 1, 1, 0],
+                        scale: [0.7, 1.0, 1.0, 2.0],
+                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(10px)']
+                      }}
+                      transition={{
+                        duration: DIGIT_DURATION / 1000,
+                        times: prefersReducedMotion ? [0, 1] : [0, 0.25, 0.5, 1],
+                        ease: [0.4, 0, 0.2, 1]
+                      }}
+                      className="text-white font-black leading-none"
+                      style={{
+                        fontSize: 'clamp(56px, 20vmin, 140px)',
+                        willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity'
+                      }}
+                    >
+                      {currentDigit}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
-            {/* Subtitle */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.9 }}
-              className="mt-4 text-white font-semibold"
-              style={{ fontSize: 'clamp(16px, 3.5vmin, 24px)' }}
-            >
-              Ты готов(а)?
-            </motion.div>
+            {/* "Ты готов(а)?" - показывается ПОСЛЕ отсчёта */}
+            {showReadyText && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-white font-bold"
+                style={{ fontSize: 'clamp(20px, 5vmin, 32px)' }}
+              >
+                Ты готов(а)?
+              </motion.div>
+            )}
           </div>
 
           {/* Skip Button */}

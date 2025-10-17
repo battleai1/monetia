@@ -21,7 +21,8 @@ export default function SalesFlow() {
     <div className="h-viewport w-viewport bg-black">
       {showCountdown && <IntroCountdown onComplete={handleCountdownComplete} />}
       
-      <ReelsViewport totalReels={salesReels.length}>
+      {!showCountdown && (
+        <ReelsViewport totalReels={salesReels.length}>
         {salesReels.map((reel) => (
           <ReelCard
             key={reel.id}
@@ -44,6 +45,7 @@ export default function SalesFlow() {
           />
         ))}
       </ReelsViewport>
+      )}
     </div>
   );
 }
