@@ -40,6 +40,8 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ **Memory**: Single HLS instance throughout app lifecycle, proper cleanup on unmount
 - ✅ **Removed**: `useHLS` hook, old `ReelCard` component, `useVideoPreloader` (caused duplication)
 - ✅ **Integration**: forcePlayActive() for post-countdown mobile autoplay, muted state sync from global store
+- ✅ **Bug Fix**: `isActive` now uses `videoIndex` from VideoPlaybackProvider instead of local animation index
+- ✅ **Bug Fix**: HlsManager tracks reel ID to handle duplicate URLs (seeks to start for same video, different reel)
 
 ## User Preferences
 

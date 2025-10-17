@@ -4,6 +4,7 @@ export class HlsManager {
   private hls: Hls | null = null;
   private videoElement: HTMLVideoElement | null = null;
   private currentUrl: string = '';
+  private currentReelId: string = '';
   private isHlsInitialized = false;
 
   constructor() {
@@ -68,7 +69,7 @@ export class HlsManager {
     }
   }
 
-  loadSource(url: string): Promise<void> {
+  loadSource(url: string, reelId?: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.videoElement) {
         console.error('[HlsManager] ❌ No video element attached');
@@ -78,9 +79,18 @@ export class HlsManager {
 
       const isHLS = url.includes('.m3u8');
       
-      // If same URL - skip reload
-      if (this.currentUrl === url) {
-        console.log('[HlsManager] ♻️ Same URL, skipping reload');
+      // If same reel ID and URL - skip reload
+      if (this.currentUrl === url && this.currentReelId === reelId) {
+        console.log('[HlsManager] ♻️ Same reel, skipping reload');
+        resolve();
+        return;
+      }
+
+      // If same URL but different reel - just seek to beginning
+      if (this.currentUrl === url && this.currentReelId !== reelId) {
+        console.log('[HlsManager] 🔄 Same video, different reel - seeking to start');
+        this.videoElement.currentTime = 0;
+        this.currentReelId = reelId || '';
         resolve();
         return;
       }
@@ -90,6 +100,7 @@ export class HlsManager {
       // Pause video before changing source
       this.videoElement.pause();
       this.currentUrl = url;
+      this.currentReelId = reelId || '';
 
       if (isHLS && Hls.isSupported()) {
         // Initialize HLS once if not already done
@@ -174,6 +185,7 @@ export class HlsManager {
     }
     
     this.currentUrl = '';
+    this.currentReelId = '';
   }
 
   getCurrentTime(): number {

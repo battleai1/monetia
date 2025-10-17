@@ -61,7 +61,7 @@ export function VideoPlaybackProvider({
     }
     
     try {
-      await hlsManagerRef.current.loadSource(reel.videoUrl);
+      await hlsManagerRef.current.loadSource(reel.videoUrl, reel.id);
       console.log('[VideoPlayback] ✅ Reel loaded successfully');
     } catch (error) {
       console.error('[VideoPlayback] ❌ Failed to load reel:', error);
@@ -78,7 +78,7 @@ export function VideoPlaybackProvider({
       console.log('[VideoPlayback] ▶️ Executing pending load:', pendingReelRef.current.id);
       const pending = pendingReelRef.current;
       pendingReelRef.current = null;
-      hlsManagerRef.current.loadSource(pending.videoUrl).then(() => {
+      hlsManagerRef.current.loadSource(pending.videoUrl, pending.id).then(() => {
         console.log('[VideoPlayback] ✅ Pending reel loaded');
       }).catch(err => {
         console.error('[VideoPlayback] ❌ Failed to load pending reel:', err);
@@ -90,7 +90,7 @@ export function VideoPlaybackProvider({
         console.log('[VideoPlayback] 🎬 Loading initial reel after video attached');
         currentReelRef.current = initialReel;
         setProgress(0);
-        hlsManagerRef.current.loadSource(initialReel.videoUrl).then(() => {
+        hlsManagerRef.current.loadSource(initialReel.videoUrl, initialReel.id).then(() => {
           console.log('[VideoPlayback] ✅ Initial reel loaded');
         }).catch(err => {
           console.error('[VideoPlayback] ❌ Failed to load initial reel:', err);

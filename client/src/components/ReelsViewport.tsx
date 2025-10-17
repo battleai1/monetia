@@ -26,7 +26,7 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
   const viewportHeight = useViewportHeight();
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   
-  const { setIndex, onEnded, onProgress } = useVideoPlayback();
+  const { setIndex, onEnded, onProgress, currentIndex: videoIndex } = useVideoPlayback();
 
   // Компенсируем смещение при смене индекса
   useEffect(() => {
@@ -141,7 +141,7 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
         {children.map((child, index) => {
           if (!isValidElement(child)) return null;
           
-          const isActive = index === currentIndex;
+          const isActive = index === videoIndex;
           const position = (index - currentIndex) * 100; // -100%, 0%, +100%
           
           return (
