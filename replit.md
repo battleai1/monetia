@@ -31,13 +31,18 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
 - ✅ Bot must be admin in target channel to auto-approve join requests
 
-### HLS Audio Duplication Fix (October 17, 2025)
-- ✅ Fixed critical bug where users heard double audio playback
-- ✅ Root cause: `useHLS` hook recreated HLS instances on `isActive` changes
-- ✅ Solution: Removed `enabled` parameter, HLS now persists across reel swipes
-- ✅ HLS lifecycle: Only creates/destroys on videoUrl change or unmount
-- ✅ Performance: Eliminated 3+ HLS reinitializations per 30s, reduced memory churn
-- ✅ Video playback controls (pause/play/speed) now work with persistent HLS instance
+### HLS Audio Duplication Fix - Final Resolution (October 17, 2025)
+- ✅ **Completely resolved** critical audio duplication bug affecting all video playback
+- ✅ Root cause identified: ReelsViewport renders 3 videos simultaneously (prev/current/next), all creating HLS instances
+- ✅ Previous attempts failed because `isActive` dependency caused HLS recreation during swipes
+- ✅ **Final solution**: Rewrote `useHLS` hook to create HLS instance EXACTLY ONCE per component
+  - Single guard: `if (!hlsRef.current)` prevents multiple instantiations
+  - Zero dependencies on `isActive` - removed from useEffect deps entirely
+  - Cleanup ONLY on component unmount or videoUrl change
+  - Inactive reels stay paused via separate `isActive` effect in ReelCard
+- ✅ Simplified playback speed: Only mutates `video.playbackRate`, no pause/play cycles
+- ✅ Performance: Zero HLS reinitializations during normal usage, single instance per video
+- ✅ Memory: Proper cleanup prevents HLS instance leaks during reel navigation
 
 ## User Preferences
 
