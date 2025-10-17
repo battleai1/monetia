@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { useTelegram } from "@/hooks/useTelegram";
+import { useAuth } from "@/hooks/useAuth";
 import SalesFlow from "@/pages/SalesFlow";
 import TrainingFlow from "@/pages/TrainingFlow";
 import TrainingFinal from "@/pages/TrainingFinal";
@@ -41,13 +42,23 @@ function Router() {
   );
 }
 
+function AppContent() {
+  useAuth();
+  
+  return (
+    <>
+      <Toaster />
+      <Router />
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <PhoneFrame>
-          <Toaster />
-          <Router />
+          <AppContent />
         </PhoneFrame>
       </TooltipProvider>
     </QueryClientProvider>
