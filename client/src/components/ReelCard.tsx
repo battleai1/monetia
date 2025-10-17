@@ -206,25 +206,9 @@ export default function ReelCard({
     const video = videoRef.current;
     if (!video) return;
 
-    if (isHoldingSpeed) {
-      // Ускоряем до 2x
-      video.playbackRate = 2.0;
-    } else {
-      // Замедляем обратно до 1x
-      video.playbackRate = 1.0;
-      
-      // Принудительно сбрасываем audio context чтобы очистить дублирующие buffers
-      const wasPlaying = !video.paused;
-      if (wasPlaying) {
-        const currentTime = video.currentTime;
-        video.pause();
-        // Небольшая задержка для очистки audio buffers
-        setTimeout(() => {
-          video.currentTime = currentTime;
-          video.play().catch(() => {});
-        }, 10);
-      }
-    }
+    // ПРОСТО меняем скорость - никаких pause/play!
+    video.playbackRate = isHoldingSpeed ? 2.0 : 1.0;
+    console.log('[Speed] Changed playbackRate to:', video.playbackRate, 'paused:', video.paused);
   }, [isHoldingSpeed]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

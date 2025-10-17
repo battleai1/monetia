@@ -4,6 +4,7 @@ import Hls from 'hls.js';
 export function useHLS(videoUrl: string, isActive: boolean = true) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const isCleaningUpRef = useRef(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -16,6 +17,12 @@ export function useHLS(videoUrl: string, isActive: boolean = true) {
     // КРИТИЧНО: Инициализируем HLS ТОЛЬКО для активного видео!
     if (isHLS && isActive) {
       if (Hls.isSupported()) {
+        // Ждем пока завершится предыдущий cleanup
+        if (isCleaningUpRef.current) {
+          console.log('[HLS] Cleanup in progress, waiting...');
+          return;
+        }
+        
         // Только создаем новый HLS если его еще нет
         if (!hlsRef.current) {
           console.log('[HLS] Creating NEW HLS instance for:', videoUrl);
@@ -61,15 +68,22 @@ export function useHLS(videoUrl: string, isActive: boolean = true) {
         return () => {
           // Уничтожаем HLS при размонтировании или когда видео становится неактивным
           console.log('[HLS] CLEANUP called - destroying HLS');
+          isCleaningUpRef.current = true;
+          
           if (hlsRef.current) {
-            if (video) {
-              video.pause();
-              video.removeAttribute('src');
-              video.load();
+            const hlsToDestroy = hlsRef.current;
+            hlsRef.current = null; // Сразу обнуляем чтобы новый useEffect не видел старый
+            
+            // Останавливаем видео и уничтожаем HLS
+            try {
+              hlsToDestroy.destroy();
+              console.log('[HLS] CLEANUP complete');
+            } catch (e) {
+              console.error('[HLS] Error during cleanup:', e);
             }
-            hlsRef.current.destroy();
-            hlsRef.current = null;
           }
+          
+          isCleaningUpRef.current = false;
         };
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('[HLS] Using native HLS support (Safari)');
