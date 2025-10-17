@@ -1,0 +1,220 @@
+ТЗ для Replit: перекрывающийся обратный отсчёт 5→1
+Ключевая кинематика
+
+Одна цифра «выпрыгивает» к зрителю: scale ↑ до ~2.0, одновременно blur ↑ до 10px, opacity ↓ до 0.
+
+Следующая цифра стартует раньше, чем предыдущая исчезла — перекрытие ~40% длительности кадра.
+
+Длительность одного тика (T) = 700 ms (можно 650–800).
+Перекрытие (overlap) = T * 0.4 (≈ 280 ms).
+
+Пики и хэптики:
+
+Пик масштаба ~35% T (≈ 245 ms после старта конкретной цифры).
+
+Хэптик: HapticFeedback.impactOccurred('medium'), на «1» — heavy. Фолбэк navigator.vibrate(30).
+
+Техника реализации
+
+Двойной буфер: два абсолютно позиционированных слоя .digit один над другим.
+
+На каждом тике:
+
+«Входящий» слой получает новую цифру и играет вход+выход (единая WAAPI-анимация).
+
+Через T - overlap мс запускается следующая цифра на другом слое.
+
+Так гарантируется одновременное присутствие двух цифр при смене.
+
+Мини-прототип (HTML/CSS/JS)
+
+Вставляйте как есть в Replit (index.html). Хватает одного файла.
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Перекрывающийся отсчёт</title>
+  <style>
+    :root {
+      --bg: rgba(0,0,0,0.88);
+    }
+    body { margin:0; background:#111; }
+    /* Оверлей */
+    #intro-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: grid; place-items: center;
+    }
+    .intro-backdrop { position:absolute; inset:0; background: var(--bg); }
+    .intro-center { position:relative; text-align:center; padding:24px; }
+    /* Два слоя цифр (двойной буфер) */
+    .digits {
+      position: relative;
+      width: 100vw; height: 40vh;
+      display: grid; place-items: center;
+    }
+    .digit {
+      position: absolute;
+      color: #fff; font-weight: 900; line-height: 1;
+      font-size: clamp(56px, 20vmin, 140px);
+      will-change: transform, filter, opacity;
+      filter: blur(0);
+      opacity: 0;
+      transform: scale(0.7);
+      user-select: none;
+    }
+    .intro-subtitle {
+      margin-top: 16px; color: #fff; opacity: .92;
+      font-size: clamp(16px, 3.5vmin, 24px);
+      text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+    #intro-skip {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(255,255,255,0.08);
+      color: #fff; border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 12px; padding: 8px 12px;
+      backdrop-filter: blur(4px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .digit { transition: none; animation: none; }
+    }
+
+    /* Демо-видео, чтобы увидеть старт после отсчёта */
+    video { width: min(720px, 92vw); display:block; margin: 24px auto; border-radius:16px; }
+  </style>
+</head>
+<body>
+
+  <!-- ДЕМО-видео -->
+  <video id="first" src="" controls muted playsinline poster="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB..."></video>
+
+  <div id="intro-overlay" hidden>
+    <div class="intro-backdrop"></div>
+    <div class="intro-center">
+      <div class="digits" aria-live="assertive" aria-atomic="true">
+        <div class="digit" id="d0">5</div>
+        <div class="digit" id="d1">5</div>
+      </div>
+      <div class="intro-subtitle">Ты готов(а)?</div>
+    </div>
+    <button id="intro-skip" type="button" aria-label="Пропустить обратный отсчёт">Пропустить</button>
+  </div>
+
+<script>
+/** ПАРАМЕТРЫ */
+const SEQ = [5,4,3,2,1];
+const T = 700;                     // длительность одного тика
+const OVERLAP = 0.4;               // доля перекрытия следующей цифры
+const OVERLAY_FADE = 280;          // исчезновение оверлея
+const EASE = 'cubic-bezier(0.4,0,0.2,1)';
+
+const overlay = document.getElementById('intro-overlay');
+const skipBtn  = document.getElementById('intro-skip');
+const firstVideo = document.getElementById('first');
+
+const layers = [
+  document.getElementById('d0'),
+  document.getElementById('d1'),
+];
+
+let hasInteracted = false;
+const onFirstUserGesture = () => { hasInteracted = true; window.removeEventListener('pointerdown', onFirstUserGesture); };
+window.addEventListener('pointerdown', onFirstUserGesture, { once:true });
+
+/** Хэптики с безопасной проверкой */
+function haptic(n) {
+  try {
+    const tg = window.Telegram?.WebApp?.HapticFeedback;
+    if (tg?.impactOccurred) {
+      tg.impactOccurred(n === 1 ? 'heavy' : 'medium');
+      return;
+    }
+    if (navigator.vibrate && hasInteracted) navigator.vibrate(30);
+  } catch(_) {}
+}
+
+/** Единая ключевая анимация для цифры */
+function playDigit(el, value) {
+  el.textContent = String(value);
+  el.getAnimations().forEach(a => a.cancel());
+
+  // пик (момент хэптика) ~35% длительности
+  const hapticDelay = Math.round(T * 0.35);
+
+  const anim = el.animate([
+    { opacity: 0, transform: 'scale(0.7)', filter: 'blur(0px)' },
+    { opacity: 1, transform: 'scale(1.0)', filter: 'blur(0px)', offset: 0.25 },
+    { opacity: 0, transform: 'scale(2.0)', filter: 'blur(10px)' }
+  ], { duration: T, easing: EASE, fill: 'both' });
+
+  // Триггер хэптика около пика «удара»
+  setTimeout(() => haptic(value), hapticDelay);
+
+  return anim.finished;
+}
+
+/** Главный цикл с перекрытием (двойной буфер) */
+async function runCountdown({ onDone } = {}) {
+  overlay.hidden = false;
+
+  let cancelled = false;
+  skipBtn.addEventListener('click', () => { cancelled = true; }, { once: true });
+
+  let buf = 0; // какой слой «входящий»
+  for (let i = 0; i < SEQ.length; i++) {
+    if (cancelled) break;
+
+    const incoming = layers[buf];
+    const outgoing = layers[1 - buf];
+
+    // стартуем входящую цифру
+    const n = SEQ[i];
+    playDigit(incoming, n).catch(()=>{});
+
+    // следующую цифру запустим раньше конца текущей — перекрытие
+    const nextDelay = Math.max(0, T * (1 - OVERLAP)); // время до старта следующей
+    // но если это последняя цифра — не планируем следующую
+    if (i < SEQ.length - 1) {
+      await new Promise(r => setTimeout(r, nextDelay));
+      buf = 1 - buf; // переключаем буфер и идём на следующий цикл НЕ дожидаясь полного конца outgoing
+      continue;
+    }
+
+    // для последней — уже просто дождёмся конца её анимации
+    await new Promise(r => setTimeout(r, T));
+  }
+
+  // исчезновение оверлея
+  await overlay.animate([{opacity:1},{opacity:0}], { duration: OVERLAY_FADE, fill:'forwards' }).finished
+    .catch(()=>{ overlay.style.opacity = 0; });
+
+  overlay.remove();
+  onDone && onDone();
+}
+
+/** Запуск видео после интро (демо-логика) */
+function startFirstVideo() {
+  if (!firstVideo) return;
+  firstVideo.muted = true;
+  firstVideo.play().catch(()=>{ /* ОК для iOS */ });
+}
+
+/** Демонстрационный вход */
+document.addEventListener('DOMContentLoaded', async () => {
+  // Покажем интро всегда в демо; в продукте поставьте проверку localStorage
+  await runCountdown({ onDone: startFirstVideo });
+});
+</script>
+</body>
+</html>
+
+Что поменяли по сравнению с предыдущей версией
+
+Перекрытие анимаций реализовано через двойной буфер из двух элементов .digit (flip-flop). Теперь следующая цифра начинает анимацию через T * (1 - overlap) после старта предыдущей (по умолчанию ~420 мс), пока старая всё ещё увеличивается и исчезает.
+
+Хэптик привязан к пиковому моменту каждой цифры (~0.35*T).
+
+Фолбэк navigator.vibrate(30) сработает только после первого пользовательского жеста, чтобы не нарываться на ограничения платформы.
+
+Вся анимация сделана через Web Animations API (WAAPI) — без лишних зависимостей, 60 fps, GPU-friendly (transform/opacity/filter).

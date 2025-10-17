@@ -13,10 +13,10 @@ interface IntroCountdownProps {
 
 export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [currentDigit, setCurrentDigit] = useState<number | null>(null);
-  const [nextDigit, setNextDigit] = useState<number | null>(null);
+  const [visibleDigits, setVisibleDigits] = useState<number[]>([]);
+  const [explodingDigit, setExplodingDigit] = useState<number | null>(null);
   const [showReadyText, setShowReadyText] = useState(false);
-  const { triggerHaptic } = useTelegram();
+  const { triggerHaptic} = useTelegram();
   const hasShown = useRef(false);
   const prefersReducedMotion = useReducedMotion();
 
@@ -33,7 +33,9 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     for (let i = 0; i < DIGITS.length; i++) {
       const digit = DIGITS[i];
       
-      setCurrentDigit(digit);
+      // Показываем текущую цифру и устанавливаем её как взрывающуюся
+      setVisibleDigits([digit]);
+      setExplodingDigit(digit);
       
       // Хэптик и вибрация СРАЗУ при появлении цифры
       const vibrationDuration = digit === 1 ? 100 : 50;
@@ -59,16 +61,19 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
       // Показываем СЛЕДУЮЩУЮ цифру на фоне через 100ms после начала взрыва (840ms + 100ms = 940ms)
       if (i < DIGITS.length - 1) {
         setTimeout(() => {
-          setNextDigit(DIGITS[i + 1]);
+          setVisibleDigits([digit, DIGITS[i + 1]]);
         }, 940);
       }
 
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
       
-      // Убираем обе цифры в конце итерации
-      setCurrentDigit(null);
-      setNextDigit(null);
+      // Убираем взорвавшуюся цифру из массива
+      setVisibleDigits(current => current.filter(d => d !== digit));
     }
+    
+    // Очищаем все
+    setVisibleDigits([]);
+    setExplodingDigit(null);
     
     // Показываем "Ты готов(а)?" на 2.5 секунды
     setShowReadyText(true);
@@ -89,7 +94,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     }, 300);
   };
 
-  if (!isVisible && !currentDigit) return null;
+  if (!isVisible && visibleDigits.length === 0) return null;
 
   return (
     <AnimatePresence>
@@ -107,7 +112,7 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
 
           {/* Content */}
           <div className="relative text-center px-6">
-            {/* Digit */}
+            {/* Digits */}
             {!showReadyText && (
               <div 
                 className="relative h-[140px]"
@@ -115,75 +120,54 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                 aria-live="assertive" 
                 aria-atomic="true"
               >
-                {/* Текущая цифра (взрывается) */}
                 <AnimatePresence>
-                  {currentDigit !== null && (
-                    <motion.div
-                      key={`current-${currentDigit}`}
-                      initial={{ 
-                        opacity: prefersReducedMotion ? 1 : 0, 
-                        scale: prefersReducedMotion ? 1 : 0.5,
-                        filter: 'blur(0px)'
-                      }}
-                      animate={prefersReducedMotion ? {
-                        opacity: [1, 0],
-                      } : { 
-                        opacity: [0, 1, 1, 1, 0],
-                        scale: [0.5, 1.0, 1.0, 1.2, 8.0],
-                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
-                      }}
-                      transition={{
-                        duration: DIGIT_DURATION / 1000,
-                        times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
-                        ease: [0.23, 1, 0.32, 1]
-                      }}
-                      className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
-                      style={{
-                        fontSize: 'clamp(80px, 30vmin, 200px)',
-                        willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity',
-                        transform: 'translateZ(0)',
-                        backfaceVisibility: 'hidden',
-                        perspective: '1000px',
-                        zIndex: 2
-                      }}
-                    >
-                      {currentDigit}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Следующая цифра (появляется на фоне) */}
-                <AnimatePresence>
-                  {nextDigit !== null && (
-                    <motion.div
-                      key={`next-${nextDigit}`}
-                      initial={{ 
-                        opacity: 0, 
-                        scale: 0.5,
-                        filter: 'blur(0px)'
-                      }}
-                      animate={{ 
-                        opacity: 1,
-                        scale: 1.0,
-                        filter: 'blur(0px)'
-                      }}
-                      transition={{
-                        duration: 0.5,
-                        ease: [0.23, 1, 0.32, 1]
-                      }}
-                      className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
-                      style={{
-                        fontSize: 'clamp(80px, 30vmin, 200px)',
-                        willChange: 'transform, opacity',
-                        transform: 'translateZ(0)',
-                        backfaceVisibility: 'hidden',
-                        perspective: '1000px',
-                        zIndex: 1
-                      }}
-                    >
-                      {nextDigit}
-                    </motion.div>
-                  )}
+                  {visibleDigits.map((digit) => {
+                    const isExploding = digit === explodingDigit;
+                    
+                    return (
+                      <motion.div
+                        key={digit}
+                        initial={{ 
+                          opacity: 0, 
+                          scale: 0.5,
+                          filter: 'blur(0px)'
+                        }}
+                        animate={isExploding ? (prefersReducedMotion ? {
+                          opacity: [1, 0],
+                        } : { 
+                          opacity: [0, 1, 1, 1, 0],
+                          scale: [0.5, 1.0, 1.0, 1.2, 8.0],
+                          filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
+                        }) : {
+                          opacity: 1,
+                          scale: 1.0,
+                          filter: 'blur(0px)'
+                        }}
+                        exit={{
+                          opacity: 0
+                        }}
+                        transition={isExploding ? {
+                          duration: DIGIT_DURATION / 1000,
+                          times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
+                          ease: [0.23, 1, 0.32, 1]
+                        } : {
+                          duration: 0.5,
+                          ease: [0.23, 1, 0.32, 1]
+                        }}
+                        className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
+                        style={{
+                          fontSize: 'clamp(80px, 30vmin, 200px)',
+                          willChange: isExploding && !prefersReducedMotion ? 'transform, filter, opacity' : 'transform, opacity',
+                          transform: 'translateZ(0)',
+                          backfaceVisibility: 'hidden',
+                          perspective: '1000px',
+                          zIndex: isExploding ? 2 : 1
+                        }}
+                      >
+                        {digit}
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
               </div>
             )}
