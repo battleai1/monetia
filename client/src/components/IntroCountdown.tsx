@@ -33,12 +33,20 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
       const digit = DIGITS[i];
       setCurrentDigit(digit);
       
-      // Хэптик в момент появления цифры
+      // Хэптик и вибрация в момент появления цифры
       setTimeout(() => {
         if (digit === 1) {
           triggerHaptic('heavy');
+          // Вибрация для мобильных устройств (fallback)
+          if (navigator.vibrate) {
+            navigator.vibrate(100); // 100ms сильная вибрация
+          }
         } else {
           triggerHaptic('medium');
+          // Вибрация для мобильных устройств (fallback)
+          if (navigator.vibrate) {
+            navigator.vibrate(50); // 50ms средняя вибрация
+          }
         }
       }, 250);
 

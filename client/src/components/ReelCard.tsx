@@ -75,7 +75,19 @@ export default function ReelCard({
     if (!video) return;
 
     if (isActive) {
-      video.play().catch(() => {});
+      // Попытка автозапуска видео
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Если не получилось запустить со звуком, пробуем с muted
+          console.log('[Video] Autoplay blocked, trying with muted:', error.message);
+          video.muted = true;
+          video.play().catch(err => {
+            console.error('[Video] Failed to play even with muted:', err);
+          });
+        });
+      }
     } else {
       video.pause();
     }
@@ -198,6 +210,7 @@ export default function ReelCard({
           poster={posterUrl}
           muted={isMuted}
           playsInline
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
           data-testid={`reel-video-${id}`}
         />

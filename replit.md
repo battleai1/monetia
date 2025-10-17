@@ -17,12 +17,20 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
     - opacity: 0→1→1→1→0 (плавное появление/исчезновение)
   - Длительность каждой цифры: **1200ms** (медленнее, плавнее)
   - Easing: cubic-bezier(0.23, 1, 0.32, 1) для органичной анимации
-  - Хэптики через Telegram WebApp API (medium на 5-2, heavy на 1)
+  - **Вибрация на мобильных устройствах** при появлении каждой цифры:
+    - navigator.vibrate(50ms) для цифр 5-2
+    - navigator.vibrate(100ms) для цифры 1
+    - + Telegram Haptic API (medium/heavy)
   - **Последовательность**: таймер → "Ты готов(а)?" (1с) → видео запускается
   - Видео НЕ рендерится до завершения countdown (showCountdown контролирует)
   - Нет кнопки "Пропустить" - полноценный просмотр countdown
   - Поддержка prefers-reduced-motion (упрощённая анимация без scale/blur)
   - Доступность: aria-live для объявления цифр
+- ✅ **Автозапуск видео на смартфонах**:
+  - Улучшенная логика автозапуска с fallback на muted
+  - Автоматическая попытка запуска с звуком, затем без звука если заблокировано
+  - preload="auto" для быстрой загрузки первого видео
+  - playsInline для корректной работы на iOS
 
 ### Completed Implementation
 - ✅ Full Instagram Reels-style UI with dark theme (black-purple gradients, neon accents)
