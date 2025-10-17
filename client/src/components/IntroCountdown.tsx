@@ -50,11 +50,11 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
         }
       }
 
-      // Показываем СЛЕДУЮЩУЮ цифру на фоне в момент "попа" (через 700ms)
+      // Показываем СЛЕДУЮЩУЮ цифру на фоне в момент начала роста (через 540ms = 45% от 1200ms)
       if (i < DIGITS.length - 1) {
         setTimeout(() => {
           setNextDigit(DIGITS[i + 1]);
-        }, 700);
+        }, 540);
       }
 
       await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
