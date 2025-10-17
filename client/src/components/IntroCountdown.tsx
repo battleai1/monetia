@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 
-const APP_VERSION = '1';
-const STORAGE_KEY = `introCountdownSeen_v${APP_VERSION}`;
 const DIGITS = [5, 4, 3, 2, 1];
-const DIGIT_DURATION = 1200; // ms - увеличено для более плавной анимации
+const T = 700;                    // длительность одного тика
+const OVERLAP = 0.4;              // доля перекрытия следующей цифры
+const OVERLAY_FADE = 280;         // исчезновение оверлея
 
 interface IntroCountdownProps {
   onComplete: () => void;
@@ -13,187 +13,182 @@ interface IntroCountdownProps {
 
 export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [visibleDigits, setVisibleDigits] = useState<number[]>([]);
-  const [explodingDigit, setExplodingDigit] = useState<number | null>(null);
   const [showReadyText, setShowReadyText] = useState(false);
-  const { triggerHaptic} = useTelegram();
+  const { triggerHaptic } = useTelegram();
   const hasShown = useRef(false);
-  const prefersReducedMotion = useReducedMotion();
+  const hasInteracted = useRef(false);
+  const layer0Ref = useRef<HTMLDivElement>(null);
+  const layer1Ref = useRef<HTMLDivElement>(null);
+
+  // Track user interaction for vibrate API
+  useEffect(() => {
+    const handleInteraction = () => {
+      hasInteracted.current = true;
+    };
+    window.addEventListener('pointerdown', handleInteraction, { once: true });
+    return () => window.removeEventListener('pointerdown', handleInteraction);
+  }, []);
 
   useEffect(() => {
     if (hasShown.current) return;
-
     hasShown.current = true;
     setIsVisible(true);
-    startCountdown();
+    runCountdown();
   }, []);
 
-  const startCountdown = async () => {
-    // Отсчёт 5→4→3→2→1
-    for (let i = 0; i < DIGITS.length; i++) {
-      const digit = DIGITS[i];
-      
-      // Показываем текущую цифру и устанавливаем её как взрывающуюся
-      setVisibleDigits([digit]);
-      setExplodingDigit(digit);
-      
-      // Хэптик и вибрация СРАЗУ при появлении цифры
-      const vibrationDuration = digit === 1 ? 100 : 50;
-      const hapticType = digit === 1 ? 'heavy' : 'medium';
-      
-      console.log(`[Countdown] Digit ${digit} - triggering vibration (${vibrationDuration}ms)`);
-      
-      // Telegram Haptic
+  // Хэптик с безопасной проверкой
+  const haptic = (n: number) => {
+    try {
+      const hapticType = n === 1 ? 'heavy' : 'medium';
       triggerHaptic(hapticType);
       
-      // Navigator Vibrate API
-      if ('vibrate' in navigator) {
-        try {
-          const vibrateResult = navigator.vibrate(vibrationDuration);
-          console.log(`[Countdown] Vibrate API result:`, vibrateResult);
-        } catch (error) {
-          console.error('[Countdown] Vibrate API error:', error);
-        }
-      } else {
-        console.warn('[Countdown] Vibrate API not supported');
+      // Фолбэк navigator.vibrate (только после user gesture)
+      if ('vibrate' in navigator && hasInteracted.current) {
+        navigator.vibrate(30);
       }
-
-      // Показываем СЛЕДУЮЩУЮ цифру на фоне через 100ms после начала взрыва (840ms + 100ms = 940ms)
-      if (i < DIGITS.length - 1) {
-        setTimeout(() => {
-          setVisibleDigits([digit, DIGITS[i + 1]]);
-        }, 940);
-      }
-
-      await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
-      
-      // Убираем взорвавшуюся цифру из массива
-      setVisibleDigits(current => current.filter(d => d !== digit));
+    } catch (error) {
+      console.warn('[Countdown] Haptic error:', error);
     }
+  };
+
+  // Единая анимация для цифры (Web Animations API)
+  const playDigit = (el: HTMLDivElement, value: number): Promise<void> => {
+    el.textContent = String(value);
     
-    // Очищаем все
-    setVisibleDigits([]);
-    setExplodingDigit(null);
+    // Отменяем все текущие анимации
+    el.getAnimations().forEach(a => a.cancel());
+
+    // Пик (момент хэптика) ~35% длительности
+    const hapticDelay = Math.round(T * 0.35);
+
+    // Ключевая анимация: увеличение + размытие
+    const anim = el.animate([
+      { opacity: '0', transform: 'scale(0.7)', filter: 'blur(0px)' },
+      { opacity: '1', transform: 'scale(1.0)', filter: 'blur(0px)', offset: 0.25 },
+      { opacity: '0', transform: 'scale(2.0)', filter: 'blur(10px)' }
+    ], { 
+      duration: T, 
+      easing: 'cubic-bezier(0.4,0,0.2,1)', 
+      fill: 'both' 
+    });
+
+    // Триггер хэптика на пике
+    setTimeout(() => haptic(value), hapticDelay);
+
+    return anim.finished.catch(() => {});
+  };
+
+  // Главный цикл с перекрытием (двойной буфер)
+  const runCountdown = async () => {
+    const layers = [layer0Ref.current, layer1Ref.current];
+    if (!layers[0] || !layers[1]) return;
+
+    let buf = 0; // какой слой "входящий"
     
+    for (let i = 0; i < DIGITS.length; i++) {
+      const incoming = layers[buf];
+      const n = DIGITS[i];
+
+      // Стартуем входящую цифру
+      playDigit(incoming, n);
+
+      // Следующую цифру запустим раньше конца текущей — перекрытие
+      const nextDelay = Math.max(0, T * (1 - OVERLAP)); // ~420ms
+      
+      if (i < DIGITS.length - 1) {
+        await new Promise(r => setTimeout(r, nextDelay));
+        buf = 1 - buf; // переключаем буфер
+        continue;
+      }
+
+      // Для последней цифры — дождёмся конца анимации
+      await new Promise(r => setTimeout(r, T));
+    }
+
     // Показываем "Ты готов(а)?" на 2.5 секунды
     setShowReadyText(true);
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
+    await new Promise(r => setTimeout(r, 2500));
+
     // Fade out
     setIsVisible(false);
-    
-    setTimeout(() => {
-      onComplete();
-    }, 300);
+    setTimeout(() => onComplete(), OVERLAY_FADE);
   };
 
-  const handleSkip = () => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onComplete();
-    }, 300);
-  };
-
-  if (!isVisible && visibleDigits.length === 0) return null;
+  if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
-          data-testid="intro-countdown"
-        >
-          {/* Backdrop - полностью чёрный */}
-          <div className="absolute inset-0 bg-black" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: OVERLAY_FADE / 1000 }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      data-testid="intro-countdown"
+    >
+      {/* Backdrop - полностью чёрный */}
+      <div className="absolute inset-0 bg-black" />
 
-          {/* Content */}
-          <div className="relative text-center px-6">
-            {/* Digits */}
-            {!showReadyText && (
-              <div 
-                className="relative h-[140px]"
-                role="status" 
-                aria-live="assertive" 
-                aria-atomic="true"
-              >
-                <AnimatePresence>
-                  {visibleDigits.map((digit) => {
-                    const isExploding = digit === explodingDigit;
-                    
-                    return (
-                      <motion.div
-                        key={digit}
-                        initial={{ 
-                          opacity: 0, 
-                          scale: 0.5,
-                          filter: 'blur(0px)'
-                        }}
-                        animate={isExploding ? (prefersReducedMotion ? {
-                          opacity: [1, 0],
-                        } : { 
-                          opacity: [0, 1, 1, 1, 0],
-                          scale: [0.5, 1.0, 1.0, 1.2, 8.0],
-                          filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
-                        }) : {
-                          opacity: 1,
-                          scale: 1.0,
-                          filter: 'blur(0px)'
-                        }}
-                        exit={{
-                          opacity: 0
-                        }}
-                        transition={isExploding ? {
-                          duration: DIGIT_DURATION / 1000,
-                          times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
-                          ease: [0.23, 1, 0.32, 1]
-                        } : {
-                          duration: 0.5,
-                          ease: [0.23, 1, 0.32, 1]
-                        }}
-                        className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
-                        style={{
-                          fontSize: 'clamp(80px, 30vmin, 200px)',
-                          willChange: isExploding && !prefersReducedMotion ? 'transform, filter, opacity' : 'transform, opacity',
-                          transform: 'translateZ(0)',
-                          backfaceVisibility: 'hidden',
-                          perspective: '1000px',
-                          zIndex: isExploding ? 2 : 1
-                        }}
-                      >
-                        {digit}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            )}
+      {/* Content */}
+      <div className="relative text-center px-6">
+        {/* Двойной буфер цифр */}
+        {!showReadyText && (
+          <div 
+            className="relative w-full grid place-items-center"
+            style={{ height: '40vh' }}
+            role="status" 
+            aria-live="assertive" 
+            aria-atomic="true"
+          >
+            {/* Слой 0 */}
+            <div
+              ref={layer0Ref}
+              className="absolute text-white font-black leading-none select-none"
+              style={{
+                fontSize: 'clamp(80px, 30vmin, 200px)',
+                willChange: 'transform, filter, opacity',
+                filter: 'blur(0)',
+                opacity: 0,
+                transform: 'scale(0.7)',
+              }}
+            >
+              5
+            </div>
 
-            {/* "Ты готов(а)?" - показывается ПОСЛЕ отсчёта */}
-            {showReadyText && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{
-                  duration: 0.4,
-                  ease: [0.23, 1, 0.32, 1]
-                }}
-                className="text-white font-bold"
-                style={{ 
-                  fontSize: 'clamp(28px, 7vmin, 48px)',
-                  transform: 'translateZ(0)',
-                  backfaceVisibility: 'hidden'
-                }}
-              >
-                Ты готов(а)?
-              </motion.div>
-            )}
+            {/* Слой 1 */}
+            <div
+              ref={layer1Ref}
+              className="absolute text-white font-black leading-none select-none"
+              style={{
+                fontSize: 'clamp(80px, 30vmin, 200px)',
+                willChange: 'transform, filter, opacity',
+                filter: 'blur(0)',
+                opacity: 0,
+                transform: 'scale(0.7)',
+              }}
+            >
+              5
+            </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+
+        {/* "Ты готов(а)?" - показывается ПОСЛЕ отсчёта */}
+        {showReadyText && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.4,
+              ease: [0.23, 1, 0.32, 1]
+            }}
+            className="text-white font-bold"
+            style={{ 
+              fontSize: 'clamp(28px, 7vmin, 48px)',
+            }}
+          >
+            Ты готов(а)?
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
   );
 }
