@@ -65,7 +65,7 @@ export function initTelegramBot() {
 
         const welcomeMessage = `Привет, ${userName}!\n\n+10 руб. - продолжи просмотр`;
         
-        // Пытаемся отправить сообщение в личку пользователю
+        // Отправляем сообщение ТОЛЬКО в личку пользователю
         try {
           await bot!.telegram.sendMessage(userId, welcomeMessage, {
             reply_markup: {
@@ -81,24 +81,8 @@ export function initTelegramBot() {
           });
           console.log('[Telegram Bot] ✅ Welcome message sent to user DM:', userName);
         } catch (dmError) {
-          // Если не получилось отправить в личку - отправляем в канал
           const dmErrorMessage = dmError instanceof Error ? dmError.message : String(dmError);
-          console.log('[Telegram Bot] ⚠️ Cannot send DM to user (user must start chat first):', dmErrorMessage);
-          console.log('[Telegram Bot] Sending welcome message to channel instead...');
-          
-          await bot!.telegram.sendMessage(chatId, welcomeMessage, {
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  {
-                    text: 'Открыть приложение',
-                    web_app: { url: webAppUrl },
-                  },
-                ],
-              ],
-            },
-          });
-          console.log('[Telegram Bot] ✅ Welcome message sent to channel for user:', userName);
+          console.log('[Telegram Bot] ⚠️ Cannot send DM to user (user must start chat with bot first):', dmErrorMessage);
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
