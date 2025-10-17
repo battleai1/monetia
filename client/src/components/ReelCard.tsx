@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/app.store';
+import { useHLS } from '@/hooks/useHLS';
 import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
 import LessonCaption from './LessonCaption';
@@ -59,7 +60,7 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useHLS(videoUrl, isActive, id);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
@@ -192,20 +193,22 @@ export default function ReelCard({
 
     if (isHoldingPause) {
       video.pause();
-    } else if (isActive && !isHoldingSpeed) {
-      video.play().catch(() => {});
+    } else if (isActive) {
+      // Вызываем play() только если видео на паузе и не закончилось
+      if (video.paused && !video.ended) {
+        video.play().catch(() => {});
+      }
+    } else {
+      video.pause();
     }
-  }, [isHoldingPause, isActive, isHoldingSpeed]);
+  }, [isHoldingPause, isActive]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    if (isHoldingSpeed) {
-      video.playbackRate = 2.0;
-    } else {
-      video.playbackRate = 1.0;
-    }
+    // Просто меняем скорость
+    video.playbackRate = isHoldingSpeed ? 2.0 : 1.0;
   }, [isHoldingSpeed]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
