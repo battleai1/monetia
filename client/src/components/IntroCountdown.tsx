@@ -3,13 +3,15 @@ import { motion } from 'framer-motion';
 import { useTelegram } from '@/hooks/useTelegram';
 
 const DIGITS = [5, 4, 3, 2, 1];
-const T = 1500;                   // длительность одного тика (1.5 секунды)
+const HOLD_TIME = 800;            // задержка перед взрывной анимацией (цифра стоит)
+const ANIM_TIME = 700;            // длительность самой анимации (взрыв)
+const T = HOLD_TIME + ANIM_TIME;  // общая длительность тика = 1500ms
 const OVERLAP = 0.4;              // доля перекрытия следующей цифры (40%)
 const OVERLAY_FADE = 280;         // исчезновение оверлея
 
 // Расчёт общего времени отсчёта:
-// Первая цифра: T = 1500ms
-// Следующие 4 цифры: T * (1 - OVERLAP) = 1500 * 0.6 = 900ms каждая
+// Первая цифра: T = 1500ms (800ms hold + 700ms anim)
+// Следующие 4 цифры: T * (1 - OVERLAP) = 900ms каждая
 // Итого: 1500 + 4*900 = 5100ms ≈ 5 секунд ✓
 
 interface IntroCountdownProps {
@@ -70,21 +72,26 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
     // Отменяем все текущие анимации
     el.getAnimations().forEach(a => a.cancel());
 
-    // Пик (момент хэптика) ~35% длительности
-    const hapticDelay = Math.round(T * 0.35);
+    // Процентные доли в общем времени T
+    const fadeInPct = 150 / T;        // 10% - быстрое появление (150ms)
+    const holdPct = HOLD_TIME / T;    // 53% - цифра стоит (800ms)
+    
+    // Хэптик срабатывает в начале взрывной анимации (после hold)
+    const hapticDelay = HOLD_TIME;
 
-    // Ключевая анимация: увеличение + размытие
+    // Анимация: появление → hold → взрыв
     el.animate([
-      { opacity: '0', transform: 'scale(0.7)', filter: 'blur(0px)' },
-      { opacity: '1', transform: 'scale(1.0)', filter: 'blur(0px)', offset: 0.25 },
-      { opacity: '0', transform: 'scale(2.0)', filter: 'blur(10px)' }
+      { opacity: '0', transform: 'scale(0.7)', filter: 'blur(0px)' },                    // 0%: старт
+      { opacity: '1', transform: 'scale(1.0)', filter: 'blur(0px)', offset: fadeInPct }, // 10%: появилась
+      { opacity: '1', transform: 'scale(1.0)', filter: 'blur(0px)', offset: holdPct },   // 53%: hold
+      { opacity: '0', transform: 'scale(2.0)', filter: 'blur(10px)' }                    // 100%: взрыв
     ], { 
       duration: T, 
       easing: 'cubic-bezier(0.4,0,0.2,1)', 
       fill: 'both' 
     });
 
-    // Триггер хэптика на пике
+    // Триггер хэптика в начале взрывной фазы
     setTimeout(() => haptic(value), hapticDelay);
   };
 
