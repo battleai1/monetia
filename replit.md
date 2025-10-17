@@ -6,6 +6,17 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 
 ## Recent Changes (October 2025)
 
+### Latest Updates
+- ✅ **Intro Countdown Animation** (Стартовый отсчёт):
+  - Полноэкранный обратный отсчёт 5→4→3→2→1 перед первым видео
+  - Анимации: scale (0.7→1.0→2.0), blur (0→10px), fade (0→1→0)
+  - Хэптики через Telegram WebApp API (medium на 5-2, heavy на 1)
+  - Сохранение в localStorage (показывается только при первом запуске)
+  - Кнопка "Пропустить" в правом верхнем углу
+  - Поддержка prefers-reduced-motion (упрощённая анимация)
+  - Доступность: aria-live для объявления цифр
+  - Длительность каждой цифры: 700ms, fade-out после: 300ms
+
 ### Completed Implementation
 - ✅ Full Instagram Reels-style UI with dark theme (black-purple gradients, neon accents)
 - ✅ Vertical swipe navigation with Framer Motion gestures (drag up/down to switch reels)

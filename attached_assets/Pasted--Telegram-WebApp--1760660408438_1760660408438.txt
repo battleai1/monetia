@@ -1,0 +1,251 @@
+ТЗ: стартовый отсчёт перед первым видео в Telegram WebApp
+Цель
+
+При первом входе в веб-приложение (внутри Telegram WebApp) перед автозапуском первого видео показать полноэкранный оверлей с обратным отсчётом 5 → 1 на затемнённом фоне + подпись «Ты готов(а)?». Каждая цифра появляется белой, очень жирной, резко «выпрыгивает» (увеличивается), одновременно размывается и исчезает. На каждой цифре — краткая вибрация/хэптик на мобильных устройствах. После «1» оверлей плавно пропадает и начинается воспроизведение видео.
+
+Поведение (UX/flow)
+
+Триггер показа
+
+Показать только при первом запуске конкретной версии приложения.
+
+Хранить флаг в localStorage, ключ вида: introCountdownSeen_v{APP_VERSION}.
+
+Если ключ есть — пропускаем отсчёт и сразу стартуем видео.
+
+Экран отсчёта
+
+Фуллскрин оверлей поверх всего контента.
+
+Фон: сильное затемнение (чёрный 80–90% непрозрачности). Допустимо добавить лёгкий градиент для «глубины».
+
+В центре: крупная белая цифра (Super bold), под ней строка «Ты готов(а)?» меньшим кеглем, полужирным.
+
+Длительность показа каждой цифры: 600–800 мс (по умолч. 700 мс).
+
+Последовательность: 5, 4, 3, 2, 1 → затем мгновенная пауза 150 мс → оверлей исчезает за 250–300 мс (fade-out).
+
+Опционально (по флагу): кнопка «Пропустить» в правом верхнем углу (прозрачная/вторичная), доступна с первой цифры.
+
+Анимация цифры (каждый тик)
+
+Начало: opacity: 0, transform: scale(0.7), filter: blur(0px).
+
+Вход за ~120 мс до 1.0: opacity: 1, scale(1.0).
+
+Выход: резкий оверскейл до scale(1.8–2.2) + blur(8–12px), opacity: 0. Вся фаза — ~400–500 мс.
+
+Тайминг-функция: cubic-bezier(0.2, 0.8, 0.2, 1) для входа, cubic-bezier(0.4, 0, 0.2, 1) для выхода.
+
+Цифры сменяются без скачков (следующая начинается, когда предыдущая уже почти исчезла — оверлэп до 50 мс допускается).
+
+Хэптики / вибрация
+
+На каждой цифре дернуть хэптик в момент пика масштаба (когда цифра «ударяет»).
+
+В Telegram WebApp использовать Telegram.WebApp.HapticFeedback:
+
+impactOccurred('medium') на цифрах 5–2, impactOccurred('heavy') на «1».
+
+Фолбэк для Android браузеров: navigator.vibrate(30); игнорировать на платформах, где нет вибрации.
+
+Никаких ошибок в консоли при отсутствии API.
+
+Запуск видео
+
+По завершении анимации (или при «Пропустить») скрыть оверлей (fade 250–300 мс) и стартовать первое видео.
+
+Для совместимости с автоплеем: запускать с muted; если нужен звук, включить после первого пользовательского взаимодействия (tap) или показать тихий tooltip «Нажмите, чтобы включить звук».
+
+Доступность
+
+Цифры объявлять в скрытом aria-live="assertive" (например, «Пять», «Четыре», … «Один»).
+
+Кнопка «Пропустить» с aria-label="Пропустить обратный отсчёт".
+
+Контраст: белый текст на почти чёрном фоне (WCAG AA).
+
+Учитывать prefers-reduced-motion: reduce — в этом режиме показывать статичный отсчёт (без масштаб/blur), или сразу пропускать по настройке.
+
+Тема Telegram
+
+Текст всегда белый #FFF.
+
+Фон — полупрозрачный чёрный rgba(0,0,0,0.85) поверх всего; не зависит от темы клиента.
+
+Шрифт: системный, жирность 800–900.
+
+Технические детали реализации
+Данные/флаги
+
+localStorage.getItem('introCountdownSeen_v{APP_VERSION}')
+
+При успешном завершении/скипе: setItem('introCountdownSeen_v{APP_VERSION}', '1')
+
+Разметка (упрощённо)
+<div id="intro-overlay" hidden>
+  <div class="intro-backdrop"></div>
+  <div class="intro-center">
+    <div id="intro-digit" aria-live="assertive" aria-atomic="true">5</div>
+    <div class="intro-subtitle">Ты готов(а)?</div>
+  </div>
+  <button id="intro-skip" type="button" aria-label="Пропустить обратный отсчёт">Пропустить</button>
+</div>
+
+Стили (ключевые моменты)
+#intro-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  display: grid; place-items: center;
+}
+.intro-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.88);
+}
+.intro-center { position: relative; text-align: center; padding: 24px; }
+#intro-digit {
+  color: #fff; font-weight: 900; line-height: 1;
+  /* адаптивный размер — берём меньшую сторону экрана */
+  font-size: clamp(56px, 20vmin, 140px);
+  will-change: transform, filter, opacity;
+}
+.intro-subtitle { margin-top: 16px; color: #fff; opacity: 0.9; font-size: clamp(16px, 3.5vmin, 24px); }
+#intro-skip {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,0.08);
+  color: #fff; border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px; padding: 8px 12px; backdrop-filter: blur(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  #intro-digit { transition: none; animation: none; }
+}
+
+Анимация (JS, без фреймворков)
+const DIGITS = [5,4,3,2,1];
+const DIGIT_MS = 700;     // длительность одной цифры
+const OUTRO_MS = 280;     // исчезновение оверлея
+const HAPTIC_LAST = 'heavy';
+
+function haptic(step) {
+  try {
+    // Telegram WebApp API
+    if (window.Telegram?.WebApp?.HapticFeedback?.impactOccurred) {
+      const type = (step === 1) ? HAPTIC_LAST : 'medium';
+      Telegram.WebApp.HapticFeedback.impactOccurred(type);
+      return;
+    }
+    // Android fallback
+    if (navigator.vibrate) navigator.vibrate(30);
+  } catch(_) {}
+}
+
+function animateDigit(el, n) {
+  return new Promise(resolve => {
+    el.textContent = String(n);
+    // вход
+    el.animate([
+      { opacity: 0, transform: 'scale(0.7)', filter: 'blur(0px)' },
+      { opacity: 1, transform: 'scale(1.0)', filter: 'blur(0px)', offset: 0.25 },
+      { opacity: 0, transform: 'scale(2.0)', filter: 'blur(10px)' }
+    ], {
+      duration: DIGIT_MS,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      fill: 'both'
+    }).onfinish = resolve;
+
+    // пик удара ~в 35% длительности
+    setTimeout(() => haptic(n), Math.round(DIGIT_MS * 0.35));
+  });
+}
+
+async function runIntroCountdown({ onDone }) {
+  const overlay = document.getElementById('intro-overlay');
+  const digitEl = document.getElementById('intro-digit');
+  const skipBtn = document.getElementById('intro-skip');
+
+  overlay.hidden = false;
+
+  let skipped = false;
+  const skip = () => { skipped = true; };
+  skipBtn.addEventListener('click', skip, { once: true });
+
+  for (const n of DIGITS) {
+    if (skipped) break;
+    // маленький интервал между цифрами
+    await animateDigit(digitEl, n);
+    await new Promise(r => setTimeout(r, 60));
+  }
+
+  // исчезновение оверлея
+  overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OUTRO_MS, fill: 'forwards' })
+    .onfinish = () => {
+      overlay.remove();
+      onDone?.();
+    };
+}
+
+Интеграция со стартом видео
+function startFirstVideo() {
+  const video = document.querySelector('video#first');
+  if (!video) return;
+  // для автоплея в WebView — стартуем без звука
+  video.muted = true;
+  video.play().catch(() => {/* игнор */});
+}
+
+async function maybeShowIntro() {
+  const KEY = 'introCountdownSeen_v1';
+  if (localStorage.getItem(KEY)) {
+    startFirstVideo();
+    return;
+  }
+  await runIntroCountdown({ onDone: startFirstVideo });
+  localStorage.setItem(KEY, '1');
+}
+
+// инициализация после Telegram.WebApp.ready()
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.Telegram?.WebApp?.ready) Telegram.WebApp.ready();
+  maybeShowIntro();
+});
+
+Нефункциональные требования
+
+Производительность: 60 fps на средних устройствах. Использовать transform/opacity/filter (GPU-friendly). Не трогать layout во время анимаций.
+
+Браузер/платформа: Telegram in-app WebView (iOS/Android), а также Chrome/Edge/Safari последние версии. Корректный фолбэк при отсутствии HapticFeedback/vibrate.
+
+Безопасность: отсутствие ошибок/варнингов в консоли.
+
+Размер: без лишних зависимостей. Никаких тяжёлых анимац. библиотек.
+
+Критерии приёмки (Acceptance Criteria)
+
+При первом заходе показывается затемнённый оверлей с текстом «Ты готов(а)?» и обратным отсчётом 5→1.
+
+Каждая цифра: белая, очень жирная; быстро появляется, увеличивается до ~2x, размывается и исчезает.
+
+На каждой цифре срабатывает короткая вибрация/хэптик (в Telegram WebApp — через WebApp.HapticFeedback).
+
+После «1» оверлей исчезает (≤300 мс), видео начинает воспроизводиться (минимум в mute).
+
+При повторном входе отсчёт не показывается (флаг в localStorage).
+
+Кнопка «Пропустить» сразу завершает эффект и запускает видео.
+
+В режиме prefers-reduced-motion эффект не «скачет» (упрощён/отключён).
+
+Нет ошибок в консоли на iOS/Android/desktop.
+
+Тест-кейсы (коротко)
+
+Первый запуск: отсчёт → хэптики на всех цифрах → fade-out → видео играет.
+
+Повторный запуск: отсчёта нет → видео сразу играет.
+
+Skip: нажать «Пропустить» на цифре «4» → оверлей исчез → видео играет.
+
+Нет поддержки вибрации: ошибок нет; эффект визуально корректен.
+
+Reduced motion: цифры без масштаб/blur или эффект пропущен (согласно настройке).
+
+Автоплей: видео start muted без пользовательского взаимодействия; звук включается после первого тапа/клика.
