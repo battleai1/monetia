@@ -123,9 +123,9 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
             const isActive = originalIndex === currentIndex;
             const position = (originalIndex - currentIndex) * 100;
             
-            // STABLE KEY из props.id
+            // ДИНАМИЧЕСКИЙ KEY для FORCE unmount при смене currentIndex
             const childProps = (child as React.ReactElement<any>).props;
-            const stableKey = childProps.id || originalIndex;
+            const forceUnmountKey = `${childProps.id}-range-${Math.max(0, currentIndex - 1)}`;
             
             const childWithProps = cloneElement(child as React.ReactElement<any>, {
               isActive,
@@ -136,7 +136,7 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
 
             return (
               <div
-                key={stableKey}
+                key={forceUnmountKey}
                 className="absolute inset-0 w-full h-full"
                 style={{ transform: `translateY(${position}%)` }}
               >

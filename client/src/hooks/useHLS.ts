@@ -12,12 +12,10 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
     if (!video) return;
 
     if (isActive) {
-      console.log('[useHLS] ACTIVATE', videoId);
       // АКТИВАЦИЯ: Создаём HLS если его нет
       if (isHLSUrl) {
         if (Hls.isSupported()) {
           if (!hlsRef.current) {
-            console.log('[useHLS] CREATE HLS', videoId);
             const hls = new Hls({
               enableWorker: true,
               lowLatencyMode: true,
@@ -52,19 +50,25 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
         video.src = videoUrl;
       }
     } else {
-      console.log('[useHLS] DEACTIVATE', videoId);
-      // ДЕАКТИВАЦИЯ: ПОЛНОСТЬЮ останавливаем и очищаем видео
-      video.pause();
+      // ДЕАКТИВАЦИЯ: АГРЕССИВНО останавливаем ВСЁ
       
+      // 1. Останавливаем воспроизведение
+      video.pause();
+      video.currentTime = 0;
+      
+      // 2. Уничтожаем HLS ПЕРЕД detach
       if (hlsRef.current) {
-        hlsRef.current.detachMedia();
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
       
-      // Полностью очищаем src и перезагружаем элемент
+      // 3. Полностью очищаем video element
       video.removeAttribute('src');
+      video.src = '';
       video.load();
+      
+      // 4. Убеждаемся что видео точно остановлено
+      video.pause();
     }
 
     // Cleanup при unmount компонента
