@@ -7,12 +7,14 @@ import { useViewportHeight } from '@/hooks/useViewportHeight';
 interface ReelsViewportProps {
   children: React.ReactNode[];
   totalReels: number;
+  initialReelIndex?: number;
   onIndexChange?: (index: number) => void;
 }
 
-export default function ReelsViewport({ children, totalReels, onIndexChange }: ReelsViewportProps) {
+export default function ReelsViewport({ children, totalReels, initialReelIndex, onIndexChange }: ReelsViewportProps) {
   const { currentIndex, goToNext, goToPrev, updateProgress, getProgress } = useReelsController({
     totalReels,
+    initialIndex: initialReelIndex,
     onIndexChange,
   });
 

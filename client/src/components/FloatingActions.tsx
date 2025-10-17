@@ -33,13 +33,15 @@ export default function FloatingActions({ onLike, onComment, onShare, onMenu, co
   };
 
   const handleShare = () => {
-    console.log('Share clicked');
+    console.log('Share clicked, reelId:', reelId);
     
-    const shareUrl = `${window.location.origin}?reel=${reelId || 'shared'}`;
+    // Telegram WebApp deep link - откроется в боте, а не в браузере
+    const webAppDeepLink = `https://t.me/Monetia_Bot/Open?startapp=reel_${reelId || 'shared'}`;
     const shareText = `Посмотри этот крутой ролик про вертикальные видео! 🔥`;
     
-    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(webAppDeepLink)}&text=${encodeURIComponent(shareText)}`;
     
+    console.log('[Share] WebApp deep link:', webAppDeepLink);
     openTelegramLink(telegramShareUrl);
     onShare?.();
   };

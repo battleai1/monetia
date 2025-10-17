@@ -38,6 +38,7 @@ interface TelegramWebApp {
       last_name?: string;
       username?: string;
     };
+    start_param?: string;
   };
   initData: string;
 }
@@ -58,6 +59,11 @@ export const useTelegram = () => {
       const app = window.Telegram.WebApp;
       app.ready();
       app.expand();
+      
+      // Логируем start_param для deep links
+      if (app.initDataUnsafe?.start_param) {
+        console.log('[Telegram] Deep link start_param:', app.initDataUnsafe.start_param);
+      }
       
       if (app.requestFullscreen) {
         try {
@@ -103,6 +109,7 @@ export const useTelegram = () => {
   return {
     webApp,
     user: webApp?.initDataUnsafe?.user,
+    startParam: webApp?.initDataUnsafe?.start_param,
     triggerHaptic,
     shareMessage,
     openTelegramLink,
