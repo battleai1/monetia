@@ -78,10 +78,6 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
     }
   };
 
-  const currentChild = children[currentIndex];
-  const nextChild = currentIndex < totalReels - 1 ? children[currentIndex + 1] : null;
-  const prevChild = currentIndex > 0 ? children[currentIndex - 1] : null;
-
   const handleVideoEnded = () => {
     if (currentIndex < totalReels - 1) {
       if (animationRef.current) {
@@ -98,31 +94,6 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
       });
     }
   };
-
-  // Сохраняем оригинальный key из children, не генерируем новый!
-  const currentWithProps = isValidElement(currentChild) 
-    ? cloneElement(currentChild as React.ReactElement<any>, {
-        key: (currentChild as React.ReactElement<any>).key, // Используем оригинальный key
-        isActive: true,
-        onProgress: (progress: number) => updateProgress(currentIndex, progress),
-        onVideoEnded: handleVideoEnded,
-        onCommentsOpenChange: setIsCommentsOpen,
-      })
-    : currentChild;
-
-  const nextWithProps = isValidElement(nextChild)
-    ? cloneElement(nextChild as React.ReactElement<any>, {
-        key: (nextChild as React.ReactElement<any>).key, // Используем оригинальный key
-        isActive: false,
-      })
-    : nextChild;
-
-  const prevWithProps = isValidElement(prevChild)
-    ? cloneElement(prevChild as React.ReactElement<any>, {
-        key: (prevChild as React.ReactElement<any>).key, // Используем оригинальный key
-        isActive: false,
-      })
-    : prevChild;
 
   return (
     <div className="relative w-full h-viewport bg-black overflow-hidden">
@@ -141,24 +112,30 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* Previous reel */}
-        {prevChild && (
-          <div key={`prev-${isValidElement(prevChild) ? (prevChild as React.ReactElement<any>).key : currentIndex - 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(-100%)' }}>
-            {prevWithProps}
-          </div>
-        )}
+        {/* Рендерим ВСЕ видео сразу - React НЕ будет их размонтировать! */}
+        {children.map((child, index) => {
+          if (!isValidElement(child)) return null;
+          
+          const isActive = index === currentIndex;
+          const position = (index - currentIndex) * 100; // -100%, 0%, +100%
+          
+          const childWithProps = cloneElement(child as React.ReactElement<any>, {
+            isActive,
+            onProgress: isActive ? (progress: number) => updateProgress(index, progress) : undefined,
+            onVideoEnded: isActive ? handleVideoEnded : undefined,
+            onCommentsOpenChange: isActive ? setIsCommentsOpen : undefined,
+          });
 
-        {/* Current reel */}
-        <div key={`current-${isValidElement(currentChild) ? (currentChild as React.ReactElement<any>).key : currentIndex}`} className="absolute inset-0 w-full h-full">
-          {currentWithProps}
-        </div>
-
-        {/* Next reel */}
-        {nextChild && (
-          <div key={`next-${isValidElement(nextChild) ? (nextChild as React.ReactElement<any>).key : currentIndex + 1}`} className="absolute inset-0 w-full h-full" style={{ transform: 'translateY(100%)' }}>
-            {nextWithProps}
-          </div>
-        )}
+          return (
+            <div
+              key={(child as React.ReactElement<any>).key}
+              className="absolute inset-0 w-full h-full"
+              style={{ transform: `translateY(${position}%)` }}
+            >
+              {childWithProps}
+            </div>
+          );
+        })}
       </motion.div>
     </div>
   );
