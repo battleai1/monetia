@@ -14,6 +14,7 @@ interface IntroCountdownProps {
 export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [currentDigit, setCurrentDigit] = useState<number | null>(null);
+  const [nextDigit, setNextDigit] = useState<number | null>(null);
   const [showReadyText, setShowReadyText] = useState(false);
   const { triggerHaptic } = useTelegram();
   const hasShown = useRef(false);
@@ -50,11 +51,19 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
         }
       }, 250);
 
-      await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
-    }
+      // Показываем следующую цифру на фоне во время взрыва (через 700ms)
+      if (i < DIGITS.length - 1) {
+        setTimeout(() => {
+          setNextDigit(DIGITS[i + 1]);
+        }, 700);
+      }
 
-    // Убираем цифру
-    setCurrentDigit(null);
+      await new Promise(resolve => setTimeout(resolve, DIGIT_DURATION));
+      
+      // Убираем текущую цифру, следующая уже на экране
+      setCurrentDigit(null);
+      setNextDigit(null);
+    }
     
     // Показываем "Ты готов(а)?" на 1 секунду
     setShowReadyText(true);
@@ -96,15 +105,16 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
             {/* Digit */}
             {!showReadyText && (
               <div 
-                className="relative"
+                className="relative h-[140px]"
                 role="status" 
                 aria-live="assertive" 
                 aria-atomic="true"
               >
+                {/* Текущая цифра (взрывается) */}
                 <AnimatePresence>
                   {currentDigit !== null && (
                     <motion.div
-                      key={currentDigit}
+                      key={`current-${currentDigit}`}
                       initial={{ 
                         opacity: prefersReducedMotion ? 1 : 0, 
                         scale: prefersReducedMotion ? 1 : 0.5,
@@ -117,11 +127,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                         scale: [0.5, 1.0, 1.0, 1.2, 8.0],
                         filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
                       }}
-                      exit={{
-                        opacity: 0,
-                        scale: 8.0,
-                        filter: 'blur(40px)'
-                      }}
                       transition={{
                         duration: DIGIT_DURATION / 1000,
                         times: prefersReducedMotion ? [0, 1] : [0, 0.15, 0.45, 0.7, 1],
@@ -133,10 +138,45 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                         willChange: prefersReducedMotion ? 'opacity' : 'transform, filter, opacity',
                         transform: 'translateZ(0)',
                         backfaceVisibility: 'hidden',
-                        perspective: '1000px'
+                        perspective: '1000px',
+                        zIndex: 2
                       }}
                     >
                       {currentDigit}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Следующая цифра (появляется на фоне) */}
+                <AnimatePresence>
+                  {nextDigit !== null && (
+                    <motion.div
+                      key={`next-${nextDigit}`}
+                      initial={{ 
+                        opacity: 0, 
+                        scale: 0.5,
+                        filter: 'blur(0px)'
+                      }}
+                      animate={{ 
+                        opacity: 1,
+                        scale: 1.0,
+                        filter: 'blur(0px)'
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        ease: [0.23, 1, 0.32, 1]
+                      }}
+                      className="text-white font-black leading-none absolute inset-0 flex items-center justify-center"
+                      style={{
+                        fontSize: 'clamp(56px, 20vmin, 140px)',
+                        willChange: 'transform, opacity',
+                        transform: 'translateZ(0)',
+                        backfaceVisibility: 'hidden',
+                        perspective: '1000px',
+                        zIndex: 1
+                      }}
+                    >
+                      {nextDigit}
                     </motion.div>
                   )}
                 </AnimatePresence>
