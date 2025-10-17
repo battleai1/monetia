@@ -77,6 +77,11 @@ export default function ReelCard({
     if (!video) return;
 
     if (isActive) {
+      // Убираем poster чтобы показать первый кадр видео
+      if (video.poster) {
+        video.poster = '';
+      }
+      
       // Попытка автозапуска видео
       const playPromise = video.play();
       
@@ -103,18 +108,33 @@ export default function ReelCard({
 
       console.log('[Video] Force play triggered (mobile fix after countdown)');
       
-      // Пробуем запустить со звуком
-      const playPromise = video.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log('[Video] Force play blocked, trying with muted:', error.message);
-          video.muted = true;
-          video.play().catch(err => {
-            console.error('[Video] Force play failed even with muted:', err);
+      // Агрессивный перезапуск для мобильных с несколькими попытками
+      const attemptPlay = (attempt = 1) => {
+        const playPromise = video.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.log(`[Video] Force play attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === 1) {
+              // Первая попытка не удалась - пробуем с muted
+              video.muted = true;
+              setTimeout(() => attemptPlay(2), 100);
+            } else if (attempt === 2) {
+              // Вторая попытка - перезагружаем видео и пробуем снова
+              video.load();
+              setTimeout(() => attemptPlay(3), 200);
+            } else {
+              console.error('[Video] All force play attempts failed');
+            }
+          }).then(() => {
+            console.log(`[Video] Force play successful on attempt ${attempt}`);
           });
-        });
-      }
+        }
+      };
+      
+      // Стартуем с небольшой задержкой
+      setTimeout(() => attemptPlay(1), 100);
     }
   }, [forcePlay, isActive]);
 
