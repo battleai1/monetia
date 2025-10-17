@@ -35,6 +35,8 @@ export function VideoPlaybackProvider({
   reels: Reel[];
   initialIndex?: number;
 }) {
+  console.log('[VideoPlaybackProvider] 🏗️ Component rendering/mounting');
+  
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -76,13 +78,23 @@ export function VideoPlaybackProvider({
       console.log('[VideoPlayback] ▶️ Executing pending load:', pendingReelRef.current.id);
       const pending = pendingReelRef.current;
       pendingReelRef.current = null;
-      loadReel(pending);
+      hlsManagerRef.current.loadSource(pending.videoUrl).then(() => {
+        console.log('[VideoPlayback] ✅ Pending reel loaded');
+      }).catch(err => {
+        console.error('[VideoPlayback] ❌ Failed to load pending reel:', err);
+      });
     } else {
       // Otherwise, load initial reel
       const initialReel = reels[currentIndex];
       if (initialReel && !currentReelRef.current) {
         console.log('[VideoPlayback] 🎬 Loading initial reel after video attached');
-        loadReel(initialReel);
+        currentReelRef.current = initialReel;
+        setProgress(0);
+        hlsManagerRef.current.loadSource(initialReel.videoUrl).then(() => {
+          console.log('[VideoPlayback] ✅ Initial reel loaded');
+        }).catch(err => {
+          console.error('[VideoPlayback] ❌ Failed to load initial reel:', err);
+        });
       }
     }
 
@@ -123,7 +135,7 @@ export function VideoPlaybackProvider({
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
     };
-  }, [currentIndex, reels, loadReel]);
+  }, []);
 
   const setIndex = useCallback(async (index: number) => {
     console.log('[VideoPlayback] 📊 Setting index:', index);
@@ -209,8 +221,9 @@ export function VideoPlaybackProvider({
 
   // Cleanup при размонтировании
   useEffect(() => {
+    console.log('[VideoPlaybackProvider] ✅ Provider mounted');
     return () => {
-      console.log('[VideoPlayback] 🗑️ Cleanup on unmount');
+      console.log('[VideoPlaybackProvider] 🗑️ Provider unmounting, destroying HlsManager');
       hlsManagerRef.current.destroy();
     };
   }, []);
