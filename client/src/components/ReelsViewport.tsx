@@ -1,20 +1,17 @@
 import { motion, PanInfo, useMotionValue, animate } from 'framer-motion';
 import { useReelsController } from '@/hooks/useReelsController';
 import ProgressStrips from './ProgressStrips';
-import { isValidElement, useRef, useEffect, useState } from 'react';
+import { cloneElement, isValidElement, useRef, useEffect, useState } from 'react';
 import { useViewportHeight } from '@/hooks/useViewportHeight';
-import { useVideoPlayback } from '@/contexts/VideoPlaybackContext';
-import VideoPlayerShell from './VideoPlayerShell';
 
 interface ReelsViewportProps {
   children: React.ReactNode[];
   totalReels: number;
   initialReelIndex?: number;
   onIndexChange?: (index: number) => void;
-  reels: any[];
 }
 
-function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexChange, reels }: ReelsViewportProps) {
+export default function ReelsViewport({ children, totalReels, initialReelIndex, onIndexChange }: ReelsViewportProps) {
   const { currentIndex, goToNext, goToPrev, updateProgress, getProgress } = useReelsController({
     totalReels,
     initialIndex: initialReelIndex,
@@ -25,8 +22,6 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
   const animationRef = useRef<any>(null);
   const viewportHeight = useViewportHeight();
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  
-  const { setIndex, onEnded, onProgress, currentIndex: videoIndex } = useVideoPlayback();
 
   // Компенсируем смещение при смене индекса
   useEffect(() => {
@@ -38,23 +33,6 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
       });
     }
   }, [currentIndex, y, viewportHeight]);
-
-  // Синхронизация индекса с VideoPlayback контроллером
-  useEffect(() => {
-    console.log('[ReelsViewport] Syncing index with controller:', currentIndex);
-    setIndex(currentIndex);
-  }, [currentIndex, setIndex]);
-
-  // Подписываемся на прогресс и конец видео
-  useEffect(() => {
-    onProgress((progress: number) => {
-      updateProgress(currentIndex, progress);
-    });
-
-    onEnded(() => {
-      handleVideoEnded();
-    });
-  }, [currentIndex, onProgress, onEnded]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     // Отменяем предыдущую анимацию если есть
@@ -125,9 +103,6 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
         progress={getProgress(currentIndex)}
       />
 
-      {/* Единственный video элемент для всех reels */}
-      <VideoPlayerShell posterUrl={reels[currentIndex]?.posterUrl} />
-
       <motion.div
         drag={isCommentsOpen ? false : "y"}
         dragConstraints={{ top: -viewportHeight * 1.2, bottom: viewportHeight * 1.2 }}
@@ -137,45 +112,31 @@ function ReelsViewportInner({ children, totalReels, initialReelIndex, onIndexCha
         className="relative w-full h-full"
         data-testid="reels-viewport"
       >
-        {/* Рендерим оверлеи для всех видео */}
+        {/* Рендерим ВСЕ видео сразу - React НЕ будет их размонтировать! */}
         {children.map((child, index) => {
           if (!isValidElement(child)) return null;
           
-          const isActive = index === videoIndex;
+          const isActive = index === currentIndex;
           const position = (index - currentIndex) * 100; // -100%, 0%, +100%
           
+          const childWithProps = cloneElement(child as React.ReactElement<any>, {
+            isActive,
+            onProgress: isActive ? (progress: number) => updateProgress(index, progress) : undefined,
+            onVideoEnded: isActive ? handleVideoEnded : undefined,
+            onCommentsOpenChange: isActive ? setIsCommentsOpen : undefined,
+          });
+
           return (
             <div
               key={(child as React.ReactElement<any>).key}
-              className="absolute inset-0 w-full h-full pointer-events-none"
+              className="absolute inset-0 w-full h-full"
               style={{ transform: `translateY(${position}%)` }}
             >
-              <div className="relative w-full h-full pointer-events-auto">
-                {/* Клонируем child как оверлей, передаём isActive */}
-                {isValidElement(child) && (
-                  <child.type 
-                    {...child.props} 
-                    isActive={isActive}
-                    onCommentsOpenChange={isActive ? setIsCommentsOpen : undefined}
-                  />
-                )}
-              </div>
+              {childWithProps}
             </div>
           );
         })}
       </motion.div>
     </div>
-  );
-}
-
-export default function ReelsViewport({ children, totalReels, initialReelIndex, onIndexChange, reels }: ReelsViewportProps) {
-  return (
-    <ReelsViewportInner
-      children={children}
-      totalReels={totalReels}
-      initialReelIndex={initialReelIndex}
-      onIndexChange={onIndexChange}
-      reels={reels}
-    />
   );
 }

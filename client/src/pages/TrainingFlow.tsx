@@ -1,15 +1,45 @@
 import { useLocation } from 'wouter';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useLessons } from '@/hooks/useVideos';
+import { useVideoPreloader } from '@/hooks/useVideoPreloader';
 import ReelsViewport from '@/components/ReelsViewport';
-import ReelOverlay from '@/components/ReelOverlay';
+import ReelCard from '@/components/ReelCard';
 import { useTelegram } from '@/hooks/useTelegram';
-import { VideoPlaybackProvider } from '@/contexts/VideoPlaybackContext';
 
 export default function TrainingFlow() {
   const [, setLocation] = useLocation();
   const { startParam } = useTelegram();
   const { data: lessons, isLoading } = useLessons();
+  const [showPreloader, setShowPreloader] = useState(true);
+
+  // Собираем URLs для предзагрузки
+  const videoUrls = useMemo(() => {
+    if (!lessons) return [];
+    return lessons.map(lesson => lesson.videoUrl);
+  }, [lessons]);
+
+  // Предзагрузка видео (всегда активна, независимо от UI)
+  const { loadedCount, totalCount, progress } = useVideoPreloader(
+    videoUrls,
+    videoUrls.length > 0
+  );
+
+  // Логируем прогресс предзагрузки
+  useEffect(() => {
+    if (loadedCount > 0) {
+      console.log(`[TrainingFlow] Preloaded ${loadedCount}/${totalCount} videos (${progress.toFixed(0)}%)`);
+    }
+  }, [loadedCount, totalCount, progress]);
+
+  // Скрываем UI прелоадера когда первое видео готово (но предзагрузка продолжается)
+  useEffect(() => {
+    if (loadedCount >= 1 && showPreloader) {
+      console.log('[TrainingFlow] First video ready, hiding UI preloader (background preloading continues)');
+      setTimeout(() => {
+        setShowPreloader(false);
+      }, 300);
+    }
+  }, [loadedCount, showPreloader]);
   
   // Парсим deep link параметр для получения начального индекса
   const initialReelIndex = useMemo(() => {
@@ -28,37 +58,42 @@ export default function TrainingFlow() {
     setLocation('/training/final');
   };
 
-  if (isLoading || !lessons) {
+  if (isLoading || !lessons || showPreloader) {
     return (
       <div className="h-viewport w-viewport bg-black flex flex-col items-center justify-center gap-4">
         <div className="text-white text-lg">Загрузка...</div>
+        {totalCount > 0 && (
+          <div className="text-white/60 text-sm">
+            {loadedCount} / {totalCount} видео
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="h-viewport w-viewport bg-black">
-      <VideoPlaybackProvider reels={lessons} initialIndex={initialReelIndex}>
-        <ReelsViewport 
-          totalReels={lessons.length} 
-          initialReelIndex={initialReelIndex}
-          reels={lessons}
-        >
-          {lessons.map((lesson) => (
-            <ReelOverlay
-              key={lesson.id}
-              id={lesson.id}
-              lessonTitle={lesson.lessonTitle || undefined}
-              lessonBrief={lesson.captionBrief || undefined}
-              lessonFull={lesson.captionFull || undefined}
-              ctaText={lesson.ctaText || undefined}
-              mode="training"
-              onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
-              isActive={false} // ReelsViewport will override this
-            />
-          ))}
-        </ReelsViewport>
-      </VideoPlaybackProvider>
+      <ReelsViewport totalReels={lessons.length} initialReelIndex={initialReelIndex}>
+        {lessons.map((lesson) => (
+          <ReelCard
+            key={lesson.id}
+            id={lesson.id}
+            videoUrl={lesson.videoUrl}
+            posterUrl={lesson.posterUrl || undefined}
+            lessonTitle={lesson.lessonTitle || undefined}
+            lessonBrief={lesson.captionBrief || undefined}
+            lessonFull={lesson.captionFull || undefined}
+            ctaText={lesson.nextCtaText || undefined}
+            isActive={false}
+            mode="training"
+            onCTAClick={lesson.isFinal ? handleFinalCTA : undefined}
+            author={lesson.author || undefined}
+            authorAvatar={lesson.authorAvatar || undefined}
+            likeCount={lesson.likeCount || 0}
+            shareCount={lesson.shareCount || 0}
+          />
+        ))}
+      </ReelsViewport>
     </div>
   );
 }
