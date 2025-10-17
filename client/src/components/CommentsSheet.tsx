@@ -1,5 +1,4 @@
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { Smile } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
 
@@ -162,7 +161,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
             </div>
 
             {/* Emoji Reactions */}
-            <div className="flex gap-3 px-4 py-3 overflow-x-auto">
+            <div className="flex gap-3 px-4 py-3 overflow-x-auto scrollbar-hide">
               {EMOJI_REACTIONS.map((emoji, index) => (
                 <button
                   key={index}
@@ -188,9 +187,6 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
                   className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
                   data-testid="input-comment"
                 />
-                <button className="flex-shrink-0" data-testid="button-emoji-picker">
-                  <Smile className="w-6 h-6 text-white" />
-                </button>
               </div>
             </div>
 
