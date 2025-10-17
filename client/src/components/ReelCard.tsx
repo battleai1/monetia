@@ -79,6 +79,10 @@ export default function ReelCard({
 
     if (isActive) {
       console.log('[ReelCard] ▶️ PLAY -', id);
+      
+      // Восстанавливаем состояние mute из глобального store
+      video.muted = isMuted;
+      
       // Убираем poster чтобы показать первый кадр видео
       if (video.poster) {
         video.poster = '';
@@ -101,19 +105,8 @@ export default function ReelCard({
       console.log('[ReelCard] ⏸️ PAUSE -', id);
       // КРИТИЧНО: Полностью останавливаем видео
       video.pause();
-      video.currentTime = 0;
-      video.muted = true; // Гарантируем что звук выключен
-      
-      // Проверяем что видео действительно остановилось
-      setTimeout(() => {
-        if (!video.paused) {
-          console.log('[ReelCard] ⚠️ Video still playing after pause!', id, 'forcing stop');
-          video.pause();
-          video.muted = true;
-        }
-      }, 100);
     }
-  }, [isActive, id]);
+  }, [isActive, id, isMuted]);
 
   // Принудительный запуск видео после countdown (для мобильных устройств)
   useEffect(() => {
