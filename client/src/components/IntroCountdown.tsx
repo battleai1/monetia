@@ -106,8 +106,8 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
                         opacity: [1, 0],
                       } : { 
                         opacity: [0, 1, 1, 1, 0],
-                        scale: [0.5, 1.0, 1.0, 1.2, 4.0],
-                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(30px)']
+                        scale: [0.5, 1.0, 1.0, 1.2, 8.0],
+                        filter: ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(2px)', 'blur(40px)']
                       }}
                       transition={{
                         duration: DIGIT_DURATION / 1000,
@@ -150,16 +150,6 @@ export default function IntroCountdown({ onComplete }: IntroCountdownProps) {
               </motion.div>
             )}
           </div>
-
-          {/* Skip Button */}
-          <button
-            onClick={handleSkip}
-            className="absolute top-4 right-4 px-3 py-2 bg-white/8 border border-white/18 text-white rounded-xl backdrop-blur-sm transition-colors hover:bg-white/12"
-            aria-label="Пропустить обратный отсчёт"
-            data-testid="button-skip-countdown"
-          >
-            Пропустить
-          </button>
         </motion.div>
       )}
     </AnimatePresence>
