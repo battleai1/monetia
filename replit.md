@@ -6,6 +6,19 @@ NeurotRaffic is a Telegram WebApp that delivers educational content and sales fu
 
 ## Recent Changes (October 2025)
 
+### Latest Updates (October 17, 2025)
+- ✅ **Telegram WebApp Deep Links System**:
+  - Share button generates unique deep links: `https://t.me/Monetia_Bot/Open?startapp=reel_X`
+  - Deep links open specific reels directly in Telegram WebApp (not browser)
+  - SalesFlow and TrainingFlow support `initialReelIndex` from `start_param`
+  - ReelsViewport accepts `initialReelIndex` prop for programmatic positioning
+  - Automatic parsing: `reel_1` → index 0, `reel_2` → index 1, etc.
+- ✅ **Author Block Positioning - FIXED**:
+  - Stable positioning: `bottom-5` (20px from bottom) for content block
+  - Gradient background remains at `bottom-0` (full coverage)
+  - No more edge-hugging or jumping between reels
+  - Works consistently in both Sales and Training flows
+
 ### Latest Updates
 - ✅ **Intro Countdown Animation** (Стартовый отсчёт) - ФИНАЛЬНАЯ ВЕРСИЯ:
   - **Техника двойного буфера** - два абсолютно позиционированных слоя цифр (flip-flop)

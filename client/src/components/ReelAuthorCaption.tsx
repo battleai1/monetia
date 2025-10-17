@@ -32,64 +32,66 @@ export default function ReelAuthorCaption({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-12 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
-      <div className="flex items-center gap-3 mb-3">
-        <Avatar className="w-9 h-9 border-2 border-white/80">
-          <AvatarImage src={authorAvatar} alt={author} />
-          <AvatarFallback className="bg-purple-600 text-white text-xs">
-            {author.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex items-center gap-1">
-          <span className="text-white font-semibold text-sm" data-testid={`author-${reelId}`}>
-            {author}
-          </span>
-          <div className="relative">
-            <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
-            <svg className="absolute inset-0 w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none">
-              <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+    <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+      <div className="absolute bottom-5 left-4 right-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar className="w-9 h-9 border-2 border-white/80">
+            <AvatarImage src={authorAvatar} alt={author} />
+            <AvatarFallback className="bg-purple-600 text-white text-xs">
+              {author.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-1">
+            <span className="text-white font-semibold text-sm" data-testid={`author-${reelId}`}>
+              {author}
+            </span>
+            <div className="relative">
+              <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-500" />
+              <svg className="absolute inset-0 w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none">
+                <path d="M9 12L11 14L15 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
-        </div>
-        <button
-          onClick={() => {
-            console.log('Follow clicked');
-            if (window.Telegram?.WebApp) {
-              window.Telegram.WebApp.openLink('https://t.me/+xxtfdN-63QNlNWFi');
-            }
-          }}
-          className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
-          data-testid={`button-follow-${reelId}`}
-        >
-          Подписаться
-        </button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="text-white pr-16"
-        >
-          <p 
-            onClick={toggleExpand}
-            className="text-sm leading-relaxed text-white/90 cursor-pointer" 
-            data-testid={`description-${reelId}`}
+          <button
+            onClick={() => {
+              console.log('Follow clicked');
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.openLink('https://t.me/+xxtfdN-63QNlNWFi');
+              }
+            }}
+            className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
+            data-testid={`button-follow-${reelId}`}
           >
-            {isExpanded ? descriptionFull : `${descriptionBrief}...`}
-          </p>
-          {isExpanded && (
-            <button
+            Подписаться
+          </button>
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-white pr-16"
+          >
+            <p 
               onClick={toggleExpand}
-              className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
-              data-testid={`button-collapse-${reelId}`}
+              className="text-sm leading-relaxed text-white/90 cursor-pointer" 
+              data-testid={`description-${reelId}`}
             >
-              скрыть
-            </button>
-          )}
-        </motion.div>
-      </AnimatePresence>
+              {isExpanded ? descriptionFull : `${descriptionBrief}...`}
+            </p>
+            {isExpanded && (
+              <button
+                onClick={toggleExpand}
+                className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
+                data-testid={`button-collapse-${reelId}`}
+              >
+                скрыть
+              </button>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -22,53 +22,55 @@ export default function LessonCaption({ lessonId, brief, full, author, authorAva
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe pb-10 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
-      {author && (
-        <div className="flex items-center gap-3 mb-2">
-          <Avatar className="w-9 h-9 border-2 border-white/80">
-            <AvatarImage src={authorAvatar} alt={author} />
-            <AvatarFallback className="bg-purple-600 text-white text-xs">
-              {author.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-white font-semibold text-sm" data-testid={`author-${lessonId}`}>
-            {author}
-          </span>
-          <button
-            onClick={() => console.log('Follow clicked')}
-            className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
-            data-testid={`button-follow-${lessonId}`}
-          >
-            Follow
-          </button>
-        </div>
-      )}
-      
-      <AnimatePresence mode="wait">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="text-white pr-16"
-        >
-          <p 
-            onClick={toggleExpand}
-            className="text-sm leading-relaxed text-white/90 cursor-pointer" 
-            data-testid={`caption-brief-${lessonId}`}
-          >
-            {isExpanded ? full : `${brief}...`}
-          </p>
-          {isExpanded && (
+    <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pt-12">
+      <div className="absolute bottom-5 left-4 right-4">
+        {author && (
+          <div className="flex items-center gap-3 mb-2">
+            <Avatar className="w-9 h-9 border-2 border-white/80">
+              <AvatarImage src={authorAvatar} alt={author} />
+              <AvatarFallback className="bg-purple-600 text-white text-xs">
+                {author.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-white font-semibold text-sm" data-testid={`author-${lessonId}`}>
+              {author}
+            </span>
             <button
-              onClick={toggleExpand}
-              className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
-              data-testid={`button-collapse-${lessonId}`}
+              onClick={() => console.log('Follow clicked')}
+              className="px-4 py-1 border border-white/80 rounded-lg text-white text-sm font-semibold hover-elevate active-elevate-2"
+              data-testid={`button-follow-${lessonId}`}
             >
-              скрыть
+              Follow
             </button>
-          )}
-        </motion.div>
-      </AnimatePresence>
+          </div>
+        )}
+        
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-white pr-16"
+          >
+            <p 
+              onClick={toggleExpand}
+              className="text-sm leading-relaxed text-white/90 cursor-pointer" 
+              data-testid={`caption-brief-${lessonId}`}
+            >
+              {isExpanded ? full : `${brief}...`}
+            </p>
+            {isExpanded && (
+              <button
+                onClick={toggleExpand}
+                className="text-xs text-white/70 hover-elevate active-elevate-2 mt-1"
+                data-testid={`button-collapse-${lessonId}`}
+              >
+                скрыть
+              </button>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
