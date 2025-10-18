@@ -98,15 +98,30 @@ class VideoController {
       return;
     }
     
+    const rect = entry.el.getBoundingClientRect();
     console.log(`[VideoController] Playing ${id}`, { 
       readyState: entry.el.readyState,
       paused: entry.el.paused,
-      muted: entry.el.muted 
+      muted: entry.el.muted,
+      width: rect.width,
+      height: rect.height,
+      videoWidth: entry.el.videoWidth,
+      videoHeight: entry.el.videoHeight,
+      src: entry.el.src,
+      currentSrc: entry.el.currentSrc
     });
     
     entry.el.muted = false;
     entry.el.play()
-      .then(() => console.log(`[VideoController] ${id} playing successfully`))
+      .then(() => {
+        const r = entry.el.getBoundingClientRect();
+        console.log(`[VideoController] ${id} playing successfully`, {
+          width: r.width,
+          height: r.height,
+          videoWidth: entry.el.videoWidth,
+          videoHeight: entry.el.videoHeight
+        });
+      })
       .catch((err) => {
         console.warn(`[VideoController] ${id} play failed, retrying muted`, err);
         entry.el.muted = true;

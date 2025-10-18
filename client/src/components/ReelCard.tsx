@@ -231,11 +231,10 @@ export default function ReelCard({
       >
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover bg-black"
           playsInline
           muted
           preload="metadata"
-          poster={posterUrl}
           webkit-playsinline="true"
           data-testid={`video-${id}`}
         />
