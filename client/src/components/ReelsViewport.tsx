@@ -95,6 +95,9 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
     }
   };
 
+  // Вычисляем offset для translateY всего стека
+  const stackOffset = -currentIndex * viewportHeight;
+
   return (
     <div className="relative w-full h-viewport bg-black overflow-hidden">
       <ProgressStrips
@@ -109,7 +112,7 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
         dragElastic={0.05}
         onDragEnd={handleDragEnd}
         style={{ y }}
-        className="relative w-full h-full"
+        className="flex flex-col"
         data-testid="reels-viewport"
       >
         {/* КРИТИЧНО: ФИЛЬТРУЕМ массив ДО map чтобы РЕАЛЬНО размонтировать компоненты */}
@@ -121,7 +124,6 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
             // Вычисляем оригинальный индекс
             const originalIndex = Math.max(0, currentIndex - 1) + filteredIndex;
             const isActive = originalIndex === currentIndex;
-            const position = (originalIndex - currentIndex) * 100;
             
             // СТАБИЛЬНЫЙ KEY из props.id
             const childProps = (child as React.ReactElement<any>).props;
@@ -137,8 +139,7 @@ export default function ReelsViewport({ children, totalReels, initialReelIndex, 
             return (
               <div
                 key={stableKey}
-                className="absolute inset-0 w-full h-full"
-                style={{ transform: `translateY(${position}%)` }}
+                className="h-viewport w-full shrink-0"
               >
                 {childWithProps}
               </div>
