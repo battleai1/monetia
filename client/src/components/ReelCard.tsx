@@ -76,6 +76,10 @@ export default function ReelCard({
     const el = videoRef.current;
     if (!el) return;
     
+    // КРИТИЧНО: принудительно устанавливаем размеры ПЕРЕД регистрацией
+    el.style.width = `${window.innerWidth}px`;
+    el.style.height = `${window.innerHeight}px`;
+    
     videoController.register(el, videoUrl, id);
     return () => videoController.destroy(id);
   }, [id, videoUrl]);
