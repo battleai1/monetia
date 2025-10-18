@@ -239,6 +239,13 @@ export default function ReelCard({
         <video
           ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            width: '100%',
+            height: '100%',
+            minWidth: '100%',
+            minHeight: '100%',
+            display: 'block',
+          }}
           playsInline
           muted
           preload="metadata"
