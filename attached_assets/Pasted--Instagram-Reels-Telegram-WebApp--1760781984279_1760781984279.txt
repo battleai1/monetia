@@ -1,0 +1,429 @@
+🎯 Задача
+
+Исправить вертикальный видео-фид (формат Instagram Reels) в Telegram WebApp так, чтобы:
+
+не было дублирования HLS/аудио и гонок инициализации,
+
+в любой момент проигрывалось только одно видео,
+
+жесты:
+
+долгое нажатие (≥150–200 мс) на центре или левой части видео → пауза/резюм (toggle);
+
+долгое нажатие на правой части → ускорение x2 пока держим палец/мышь; при отпускании → обратно x1.
+
+Автовоспроизведение ролика в фокусе (как в Reels) и пауза всех не в фокусе.
+
+Без заиканий при смене роликов, без утечек Hls.js, без «фантомного» звука на фоне даже когда видос на паузе.
+
+📦 Технологии и ограничения
+
+Frontend: Vanilla TS/JS или React (если проект уже на React — оставить React).
+
+Плеер: нативный <video> + hls.js (fallback на нативный HLS в iOS Safari).
+
+Целевая среда: Telegram WebApp (мобильные WebView Android/iOS), также обычные мобильные браузеры.
+
+Без сторонних громоздких плееров (video.js и т. п. — НЕ использовать).
+
+🧱 Архитектура
+1) Singleton VideoController
+
+Создать VideoController (singleton), который обеспечивает:
+
+ровно один активный плеер в приложении;
+
+API:
+
+register(videoEl, source, id) — безопасная инициализация HLS (или нативного HLS), возврат handle с методами;
+
+activate(id) — делает плеер активным, ставит паузу на все остальные;
+
+pauseAll(exceptId?);
+
+destroy(id) — стоп загрузок, hls.detachMedia(), hls.destroy(), удаление слушателей;
+
+защита от повторной инициализации того же id (дедуп).
+
+Гарантии отсутствия гонок:
+
+для каждого id хранить initToken/AbortController; при повторной регистрации предыдущую инициализацию прерывать;
+
+никакой параллельной загрузки одного и того же HLS.
+
+Audio discipline: на активации у всех НЕактивных videoEl.muted=true; videoEl.pause().
+
+2) IntersectionObserver (IO)
+
+IO на карточки/контейнеры роликов.
+
+Правила:
+
+если карточка ≥60% в вьюпорте → VideoController.activate(id) и play() активного;
+
+иначе → pause().
+
+На visibilitychange и pagehide → pauseAll().
+
+3) Инициализация HLS
+
+Если videoEl.canPlayType('application/vnd.apple.mpegURL') → НЕ подключать hls.js; просто videoEl.src = source.
+
+Иначе:
+
+const hls = new Hls({ autoStartLoad: false, ...safe-config });
+
+hls.attachMedia(videoEl) → on MEDIA_ATTACHED → hls.loadSource(source) → hls.startLoad().
+
+При register и при любом re-render обязательно чистить прошлый инстанс:
+
+hls.stopLoad(); hls.detachMedia(); hls.destroy();
+
+удалять все обработчики DOM + hls.
+
+На смене source у того же id — определённая последовательность: destroy → attach → load (никаких «горячих» перезаписей src без detach).
+
+4) Жесты (Pointer Events)
+
+Вешать на слой-оверлеи внутри карточки видео (чтобы не ломать прокрутку списка).
+
+Логика:
+
+pointerdown: фиксируем downX (в долях ширины) и запускаем setTimeout (150–200 мс).
+
+Если удержание продолжается по истечении таймера:
+
+если x <= 0.66 → toggle pause (если играл — пауза; если стоял — play и VideoController.activate(id)).
+
+если x > 0.66 → videoEl.playbackRate = 2.0 и VideoController.activate(id);
+
+pointerup/pointercancel: если был режим ускорения — вернуть playbackRate = 1.0. Сбросить таймер.
+
+Слушатели добавлять с { passive: false }, на удержании можно preventDefault() чтобы отключить ненужный скролл/long-press меню, но не блокировать обычный свайп по фиду (только в момент удержания).
+
+Короткий тап (<150 мс) — ничего не делаем (иначе конфликт со скроллом).
+
+5) Политики автоплея/аудио (мобилки)
+
+При старте карточки: videoEl.muted = true; videoEl.playsInline = true;
+
+Первый «настоящий» пользовательский жест (любой pointerdown) может вызвать videoEl.play() и снять muted=false только у активного.
+
+В iOS обязательно playsinline атрибут.
+
+🧩 Файлы и ключевые фрагменты кода
+
+Создай/обнови следующие файлы (если React — как хуки/компоненты; если Vanilla — как классы/модули):
+
+video-controller.ts
+import Hls from 'hls.js';
+
+type PlayerEntry = {
+  id: string;
+  el: HTMLVideoElement;
+  hls?: Hls | null;
+  initAbort?: AbortController;
+  source: string;
+};
+
+class VideoController {
+  private players = new Map<string, PlayerEntry>();
+  private activeId: string | null = null;
+
+  register(el: HTMLVideoElement, source: string, id: string) {
+    // dedup by id
+    const prev = this.players.get(id);
+    if (prev?.el === el && prev?.source === source) return;
+
+    // cancel previous init and destroy safely
+    if (prev) this.destroy(id);
+
+    const entry: PlayerEntry = { id, el, source, hls: null, initAbort: new AbortController() };
+    this.players.set(id, entry);
+
+    // base attrs
+    el.muted = true;
+    el.playsInline = true;
+    el.setAttribute('playsinline', '');
+    el.preload = 'metadata';
+    el.loop = true; // как в Reels
+
+    // HLS init with race guard
+    const { signal } = entry.initAbort!;
+    (async () => {
+      try {
+        if (signal.aborted) return;
+
+        if (el.canPlayType('application/vnd.apple.mpegURL')) {
+          el.src = source;
+          await el.load?.();
+        } else if (Hls.isSupported()) {
+          const hls = new Hls({
+            maxBufferLength: 10,
+            maxMaxBufferLength: 30,
+            startPosition: -1,
+            enableWorker: true,
+            lowLatencyMode: true,
+            backBufferLength: 30,
+            progressive: true,
+            // другие безопасные дефолты
+          });
+          entry.hls = hls;
+          hls.attachMedia(el);
+          hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+            if (signal.aborted) return;
+            hls.loadSource(source);
+            hls.startLoad();
+          });
+          const cleanup = () => {
+            hls.stopLoad();
+            hls.detachMedia();
+            hls.destroy();
+            entry.hls = null;
+          };
+          // страховки
+          hls.on(Hls.Events.ERROR, (_, data) => {
+            if (data.fatal) {
+              cleanup();
+            }
+          });
+        } else {
+          // последний шанс — прямой src (если сервер даёт MP4)
+          el.src = source;
+        }
+      } catch {}
+    })();
+  }
+
+  activate(id: string) {
+    if (this.activeId === id) return;
+    this.pauseAll(id);
+    this.activeId = id;
+    const entry = this.players.get(id);
+    if (!entry) return;
+    entry.el.muted = false;
+    entry.el.play().catch(() => {});
+  }
+
+  pauseAll(exceptId?: string) {
+    for (const [pid, p] of this.players) {
+      if (exceptId && pid === exceptId) continue;
+      try {
+        p.el.playbackRate = 1.0;
+        p.el.pause();
+        p.el.muted = true;
+      } catch {}
+    }
+  }
+
+  destroy(id: string) {
+    const entry = this.players.get(id);
+    if (!entry) return;
+    entry.initAbort?.abort();
+    try {
+      entry.hls?.stopLoad();
+      entry.hls?.detachMedia();
+      entry.hls?.destroy();
+    } catch {}
+    try {
+      entry.el.src = '';
+      entry.el.removeAttribute('src');
+      entry.el.load();
+    } catch {}
+    this.players.delete(id);
+    if (this.activeId === id) this.activeId = null;
+  }
+}
+
+export const videoController = new VideoController();
+
+Компонент карточки (React) ReelCard.tsx
+import { useEffect, useRef } from 'react';
+import { videoController } from './video-controller';
+
+type Props = { id: string; hlsUrl: string };
+
+export default function ReelCard({ id, hlsUrl }: Props) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const holdTimer = useRef<number | null>(null);
+  const holdingRight = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current!;
+    videoController.register(el, hlsUrl, id);
+    return () => videoController.destroy(id);
+  }, [id, hlsUrl]);
+
+  useEffect(() => {
+    const el = ref.current!;
+    const onPointerDown = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const xFrac = (e.clientX - rect.left) / rect.width;
+
+      let fired = false;
+      const timer = window.setTimeout(() => {
+        fired = true;
+        if (xFrac > 0.66) {
+          holdingRight.current = true;
+          videoController.activate(id);
+          el.playbackRate = 2.0;
+          el.play().catch(() => {});
+        } else {
+          // toggle pause/resume
+          if (el.paused) {
+            videoController.activate(id);
+          } else {
+            el.pause();
+          }
+        }
+      }, 180);
+      holdTimer.current = timer as unknown as number;
+
+      const stop = () => {
+        if (holdTimer.current) {
+          clearTimeout(holdTimer.current);
+          holdTimer.current = null;
+        }
+        if (holdingRight.current) {
+          holdingRight.current = false;
+          el.playbackRate = 1.0;
+        }
+        window.removeEventListener('pointerup', stop);
+        window.removeEventListener('pointercancel', stop);
+      };
+      window.addEventListener('pointerup', stop, { passive: true });
+      window.addEventListener('pointercancel', stop, { passive: true });
+    };
+
+    el.addEventListener('pointerdown', onPointerDown, { passive: false });
+    return () => el.removeEventListener('pointerdown', onPointerDown);
+  }, [id]);
+
+  return (
+    <div className="reel-card">
+      <video
+        ref={ref}
+        className="reel-video"
+        playsInline
+        muted
+        loop
+        preload="metadata"
+        webkit-playsinline="true"
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+      {/* Полупрозрачный оверлей для жестов, если нужно:
+      <div className="gesture-overlay" /> */}
+    </div>
+  );
+}
+
+Список/фид + IntersectionObserver ReelFeed.tsx
+import { useEffect, useRef } from 'react';
+import { videoController } from './video-controller';
+import ReelCard from './ReelCard';
+
+export default function ReelFeed({ items }: { items: { id: string; url: string }[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cards = useRef<Map<string, HTMLElement>>(new Map());
+
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      entries => {
+        let best: { id: string; ratio: number } | null = null;
+        for (const e of entries) {
+          const id = (e.target as HTMLElement).dataset['id']!;
+          if (e.isIntersecting) {
+            if (!best || e.intersectionRatio > best.ratio) {
+              best = { id, ratio: e.intersectionRatio };
+            }
+          }
+          if (e.intersectionRatio < 0.2) {
+            // карточка ушла — гарантированно пауза
+            videoController.pauseAll();
+          }
+        }
+        if (best) videoController.activate(best.id);
+      },
+      { threshold: [0, 0.2, 0.6, 0.8, 1] }
+    );
+
+    for (const [id, el] of cards.current) io.observe(el);
+
+    const onVis = () => document.visibilityState !== 'visible' && videoController.pauseAll();
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', () => videoController.pauseAll());
+
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="feed">
+      {items.map((it) => (
+        <div
+          key={it.id}
+          data-id={it.id}
+          ref={el => { if (el) cards.current.set(it.id, el); else cards.current.delete(it.id); }}
+          className="feed-item"
+          style={{ height: '100vh' }}
+        >
+          <ReelCard id={it.id} hlsUrl={it.url} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+Вариант без React (Vanilla)
+
+Если проект не на React — сгенерируй аналогичные модули: video-controller.js, initFeed.js (создание карточек, IO), attachGestures(el, id).
+
+✅ Критерии приёмки (обязательные авто/ручные проверки)
+
+Нет двойного звука: запускаем 3–5 роликов подряд — в любой момент слышно только активный ролик. Пауза в одном → тишина, никаких фонов.
+
+Нет гонок: быстрый скролл вверх/вниз не приводит к «залипшим» аудио, ошибок hls, утечкам. Не должно быть повторных инстансов Hls для одного id.
+
+Жесты:
+
+удержание слева/по центру ≥180 мс — пауза/резюм;
+
+удержание справа — скорость x2 до отпускания; отпустил — x1;
+
+короткий тап не мешает скроллу, жесты не ломают свайпы фида.
+
+Автовоспроизведение/пауза по видимости: карточка ≥60 % → играет, остальные стоят на паузе; уход со страницы/свернуть — всё на паузе.
+
+iOS Safari/Telegram WebView: playsinline, старт без фуллскрина, первый пользовательский жест снимает mute у активного.
+
+Очистка/пересоздание: при размонтаже карточки или смене url — старые Hls-инстансы уничтожаются, src очищается, слушатели сняты.
+
+Производительность: нет утечек listeners/таймеров (проверка через DevTools Performance/Memory), стабильно <60МБ доп. памяти при длительном скролле.
+
+🧪 Мини-тест-план
+
+Скрипт «стресс-скролла»: быстро проскроллить 20+ карточек — убедиться, что активен только один плеер.
+
+Межплатформенно: iOS 16+/17 Safari, Android Chrome, Telegram iOS/Android WebApp.
+
+Сеть 3G/slow-4G: не должно быть «подпевающего» предыдущего ролика.
+
+В логах нет повторных MEDIA_ATTACHED без соответствующего destroy() для одного id.
+
+🔧 Дополнительно (по желанию)
+
+Добавить debounce 150 мс на переключение активной карточки в IO чтобы уменьшить дрожание на границе видимости.
+
+Включить Media Session API (обложки, пауза/плей с гарнитуры) — не обязательно.
+
+Что важно НЕ делать
+
+Не создавать новый Hls() при каждом рендере.
+
+Не менять video.src без предварительного hls.detachMedia()/destroy() или очистки src.
+
+Не допускать параллельной инициализации одного и того же id.
+
+Не полагаться на autoplay со звуком без явного пользовательского жеста.

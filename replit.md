@@ -31,18 +31,24 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
 - ✅ Bot must be admin in target channel to auto-approve join requests
 
-### HLS Audio Duplication Fix - Final Resolution (October 17, 2025)
-- ✅ **Completely resolved** critical audio duplication bug affecting all video playback
-- ✅ Root cause identified: ReelsViewport renders 3 videos simultaneously (prev/current/next), all creating HLS instances
-- ✅ Previous attempts failed because `isActive` dependency caused HLS recreation during swipes
-- ✅ **Final solution**: Rewrote `useHLS` hook to create HLS instance EXACTLY ONCE per component
-  - Single guard: `if (!hlsRef.current)` prevents multiple instantiations
-  - Zero dependencies on `isActive` - removed from useEffect deps entirely
-  - Cleanup ONLY on component unmount or videoUrl change
-  - Inactive reels stay paused via separate `isActive` effect in ReelCard
-- ✅ Simplified playback speed: Only mutates `video.playbackRate`, no pause/play cycles
-- ✅ Performance: Zero HLS reinitializations during normal usage, single instance per video
-- ✅ Memory: Proper cleanup prevents HLS instance leaks during reel navigation
+### Video Playback Architecture Rewrite (October 18, 2025)
+- ✅ **Complete architecture rewrite** to eliminate audio duplication and HLS race conditions
+- ✅ **Singleton VideoController** pattern - ensures ONLY ONE active video at any time
+  - Global controller manages all video players via `register()`, `activate()`, `pauseAll()`, `destroy()`
+  - Automatic HLS initialization with AbortController for race condition prevention
+  - Safari native HLS fallback when `canPlayType('application/vnd.apple.mpegURL')` supported
+  - Fatal error recovery with automatic cleanup
+- ✅ **Gesture-based controls** (Instagram Reels style):
+  - Long press (180ms) on left/center → pause/resume toggle
+  - Long press on right (>66% width) → 2x speed while holding
+  - Automatic return to 1x speed on release
+  - Pointer events with proper cleanup to avoid memory leaks
+- ✅ **Smart activation**:
+  - All inactive videos are muted, paused, and have playbackRate=1.0
+  - Only active video unmutes and plays
+  - Seamless activation via `videoController.activate(id)`
+- ✅ **Future-ready for IntersectionObserver**: Architecture supports auto-activation based on viewport visibility
+- ✅ Performance: Zero duplicate HLS instances, no audio bleeding between videos
 
 ## User Preferences
 

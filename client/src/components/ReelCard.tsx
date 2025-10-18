@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store/app.store';
-import { useHLS } from '@/hooks/useHLS';
+import { videoController } from '@/lib/video-controller';
 import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
 import LessonCaption from './LessonCaption';
@@ -60,102 +60,90 @@ export default function ReelCard({
   shareCount,
   forcePlay = false,
 }: ReelCardProps) {
-  const videoRef = useHLS(videoUrl, isActive, id);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const holdTimer = useRef<number | null>(null);
+  const holdingRight = useRef(false);
+  
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [isHoldingPause, setIsHoldingPause] = useState(false);
-  const [isHoldingSpeed, setIsHoldingSpeed] = useState(false);
   const { isMuted } = useAppStore();
 
+  // Регистрация видео в VideoController
   useEffect(() => {
-    onCommentsOpenChange?.(showComments);
-  }, [showComments, onCommentsOpenChange]);
+    const el = videoRef.current;
+    if (!el) return;
+    
+    videoController.register(el, videoUrl, id);
+    return () => videoController.destroy(id);
+  }, [id, videoUrl]);
 
+  // Активация/деактивация видео
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
     if (isActive) {
-      console.log('[ReelCard] ▶️ PLAY -', id);
-      
-      // Восстанавливаем состояние mute из глобального store
-      video.muted = isMuted;
-      
-      // Убираем poster чтобы показать первый кадр видео
-      if (video.poster) {
-        video.poster = '';
-      }
-      
-      // Даём HLS время на загрузку (особенно важно для первого видео)
-      const attemptPlay = () => {
-        const playPromise = video.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            // Если не получилось запустить со звуком, пробуем с muted
-            console.log('[Video] Autoplay blocked, trying with muted:', error.message);
-            video.muted = true;
-            video.play().catch(err => {
-              console.error('[Video] Failed to play even with muted:', err);
-            });
-          });
-        }
-      };
-      
-      // Для надёжности даём 300ms на загрузку HLS
-      if (video.readyState < 2) {
-        video.addEventListener('loadeddata', attemptPlay, { once: true });
-        setTimeout(attemptPlay, 300); // Fallback timeout
-      } else {
-        attemptPlay();
-      }
-    } else {
-      console.log('[ReelCard] ⏸️ PAUSE -', id);
-      // КРИТИЧНО: Полностью останавливаем видео
-      video.pause();
+      videoController.activate(id);
     }
-  }, [isActive, id, isMuted]);
+  }, [isActive, id]);
 
-  // Принудительный запуск видео после countdown (для мобильных устройств)
+  // Синхронизация mute state с глобальным store
   useEffect(() => {
-    if (forcePlay && isActive) {
-      const video = videoRef.current;
-      if (!video) return;
+    const el = videoRef.current;
+    if (!el || !isActive) return;
+    
+    el.muted = isMuted;
+  }, [isMuted, isActive]);
 
-      console.log('[Video] Force play triggered (mobile fix after countdown)');
-      
-      // Агрессивный перезапуск для мобильных с несколькими попытками
-      const attemptPlay = (attempt = 1) => {
-        const playPromise = video.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.log(`[Video] Force play attempt ${attempt} failed:`, error.message);
-            
-            if (attempt === 1) {
-              // Первая попытка не удалась - пробуем с muted
-              video.muted = true;
-              setTimeout(() => attemptPlay(2), 100);
-            } else if (attempt === 2) {
-              // Вторая попытка - перезагружаем видео и пробуем снова
-              video.load();
-              setTimeout(() => attemptPlay(3), 200);
-            } else {
-              console.error('[Video] All force play attempts failed');
-            }
-          }).then(() => {
-            console.log(`[Video] Force play successful on attempt ${attempt}`);
-          });
+  // Жесты: долгое нажатие для паузы/ускорения
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const xFrac = (e.clientX - rect.left) / rect.width;
+
+      const timer = window.setTimeout(() => {
+        if (xFrac > 0.66) {
+          // Правая часть - ускорение x2
+          holdingRight.current = true;
+          videoController.activate(id);
+          el.playbackRate = 2.0;
+          el.play().catch(() => {});
+        } else {
+          // Левая/центр - toggle pause/resume
+          if (el.paused) {
+            videoController.activate(id);
+          } else {
+            el.pause();
+          }
         }
+      }, 180);
+      
+      holdTimer.current = timer;
+
+      const stop = () => {
+        if (holdTimer.current) {
+          clearTimeout(holdTimer.current);
+          holdTimer.current = null;
+        }
+        if (holdingRight.current) {
+          holdingRight.current = false;
+          el.playbackRate = 1.0;
+        }
+        window.removeEventListener('pointerup', stop);
+        window.removeEventListener('pointercancel', stop);
       };
       
-      // Стартуем с небольшой задержкой
-      setTimeout(() => attemptPlay(1), 100);
-    }
-  }, [forcePlay, isActive]);
+      window.addEventListener('pointerup', stop, { passive: true });
+      window.addEventListener('pointercancel', stop, { passive: true });
+    };
 
+    el.addEventListener('pointerdown', onPointerDown, { passive: false });
+    return () => el.removeEventListener('pointerdown', onPointerDown);
+  }, [id]);
+
+  // Отслеживание прогресса видео
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -185,6 +173,7 @@ export default function ReelCard({
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('ended', handleEnded);
+    
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
@@ -205,53 +194,8 @@ export default function ReelCard({
   }, [hook]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isHoldingPause) {
-      video.pause();
-    } else if (isActive) {
-      // Ждём загрузки видео перед воспроизведением
-      const tryPlay = () => {
-        if (video.paused && !video.ended) {
-          video.play().catch(() => {});
-        }
-      };
-
-      if (video.readyState >= 2) {
-        tryPlay();
-      } else {
-        video.addEventListener('loadeddata', tryPlay, { once: true });
-      }
-    } else {
-      video.pause();
-    }
-  }, [isHoldingPause, isActive]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Просто меняем скорость
-    video.playbackRate = isHoldingSpeed ? 2.0 : 1.0;
-  }, [isHoldingSpeed]);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const clickRatio = x / rect.width;
-
-    if (clickRatio > 0.75) {
-      setIsHoldingSpeed(true);
-    } else {
-      setIsHoldingPause(true);
-    }
-  };
-
-  const handlePointerUp = () => {
-    setIsHoldingPause(false);
-    setIsHoldingSpeed(false);
-  };
+    onCommentsOpenChange?.(showComments);
+  }, [showComments, onCommentsOpenChange]);
 
   const handleCTAClick = () => {
     if (ctaText) {
@@ -279,92 +223,70 @@ export default function ReelCard({
       >
         <video
           ref={videoRef}
-          src={videoUrl}
-          poster={posterUrl}
-          muted={isMuted}
-          playsInline
-          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
-          data-testid={`reel-video-${id}`}
+          playsInline
+          muted
+          preload="metadata"
+          poster={posterUrl}
+          webkit-playsinline="true"
+          data-testid={`video-${id}`}
         />
-
-        <div 
-          className="absolute inset-0 z-10 touch-none"
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          data-testid={`video-interaction-overlay-${id}`}
-        />
-
-        {lessonTitle && (
-          <div className="absolute top-safe top-16 left-4 right-16 z-30">
-            <h2 className="text-white text-xl font-semibold leading-tight" data-testid={`lesson-title-${id}`}>
-              {lessonTitle}
-            </h2>
-          </div>
-        )}
 
         <AnimatePresence>
-          {showHook && hook && (
+          {hook && showHook && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute inset-0 flex items-center justify-center z-20 bg-black/30 backdrop-blur-sm px-8"
-              data-testid={`hook-overlay-${id}`}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="absolute top-20 left-4 right-4 text-white text-2xl font-bold drop-shadow-lg"
+              data-testid="video-hook"
             >
-              <h1 className="text-white text-4xl font-bold text-center leading-tight">
-                {hook}
-              </h1>
+              {hook}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {!showComments && (
-          <>
-            <FloatingActions 
-              onComment={() => setShowComments(true)}
-              commentCount={comments.length}
-              likeCount={likeCount}
-              shareCount={shareCount}
-              reelId={id}
-            />
-
-            {mode === 'training' && lessonBrief && lessonFull && (
-              <LessonCaption 
-                lessonId={id} 
-                brief={lessonBrief} 
-                full={lessonFull}
-                author={author}
-                authorAvatar={authorAvatar}
-              />
-            )}
-
-            {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
-              <ReelAuthorCaption
-                reelId={id}
-                author={author}
-                authorAvatar={authorAvatar}
-                title={title}
-                descriptionBrief={descriptionBrief}
-                descriptionFull={descriptionFull}
-                onExpand={() => logLessonExpand(id)}
-              />
-            )}
-
-            {ctaText && (
-              <FinalCTA text={ctaText} onClick={handleCTAClick} visible={showCTA} />
-            )}
-          </>
+        {mode === 'training' && lessonTitle && lessonBrief && lessonFull && (
+          <LessonCaption
+            lessonId={id}
+            brief={lessonBrief}
+            full={lessonFull}
+            author={author}
+            authorAvatar={authorAvatar}
+          />
         )}
+
+        {mode === 'sales' && author && title && descriptionBrief && descriptionFull && (
+          <ReelAuthorCaption
+            reelId={id}
+            author={author}
+            authorAvatar={authorAvatar}
+            title={title}
+            descriptionBrief={descriptionBrief}
+            descriptionFull={descriptionFull}
+          />
+        )}
+
+        <FloatingActions
+          likeCount={likeCount || 0}
+          commentCount={comments?.length || 0}
+          shareCount={shareCount || 0}
+          onComment={() => setShowComments(!showComments)}
+          reelId={id}
+        />
+
+        <AnimatePresence>
+          {showCTA && ctaText && onCTAClick && (
+            <FinalCTA text={ctaText} onClick={handleCTAClick} visible={true} />
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <CommentsSheet
         isOpen={showComments}
         onClose={() => setShowComments(false)}
         comments={comments}
-        commentCount={comments.length}
+        commentCount={comments?.length || 0}
         onOpenChange={setShowComments}
       />
     </div>
