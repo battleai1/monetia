@@ -215,7 +215,7 @@ export default function ReelCard({
   return (
     <div className="relative w-full h-full bg-black overflow-hidden lg:overflow-visible">
       <motion.div
-        className="relative w-full origin-top overflow-hidden"
+        className="relative w-full h-full origin-top overflow-hidden"
         animate={showComments ? {
           scale: 0.57,
           y: 65,
@@ -229,9 +229,17 @@ export default function ReelCard({
         }}
         transition={{ type: 'spring', damping: 35, stiffness: 400 }}
       >
+        {posterUrl && (
+          <div 
+            className="absolute inset-0 w-full h-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${posterUrl})` }}
+          />
+        )}
+        
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover bg-black"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ minWidth: '100%', minHeight: '100%' }}
           playsInline
           muted
           preload="metadata"
