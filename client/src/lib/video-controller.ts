@@ -52,6 +52,7 @@ class VideoController {
             backBufferLength: 30,
             progressive: true,
             autoStartLoad: false,
+            capLevelToPlayerSize: true,
           });
           entry.hls = hls;
           
@@ -62,9 +63,34 @@ class VideoController {
             hls.startLoad();
           });
 
+          // КРИТИЧНО: Диагностика и фикс выбора уровня
+          hls.on(Hls.Events.MANIFEST_PARSED, (_, data: any) => {
+            console.log(`[HLS levels for ${id}]`, data.levels.map((l: any, i: number) => ({
+              i, w: l.width, h: l.height, v: l.videoCodec, a: l.audioCodec, type: l.attrs?.TYPE
+            })));
+            
+            // 1) Выкинуть audio-only уровни
+            const videoLevels = data.levels
+              .map((lvl: any, i: number) => ({ i, lvl }))
+              .filter((x: any) => (x.lvl.width || x.lvl.height));
+            
+            // 2) Предпочесть H.264 (avc1) для мобильных
+            const avc1Level = videoLevels.find((x: any) => 
+              (x.lvl.videoCodec || '').toLowerCase().includes('avc1')
+            );
+            const pick = avc1Level ?? videoLevels[0];
+            
+            if (pick) {
+              console.log(`[HLS] ${id} selecting level ${pick.i}:`, pick.lvl.videoCodec, `${pick.lvl.width}x${pick.lvl.height}`);
+              hls.currentLevel = pick.i;
+            } else {
+              console.warn(`[HLS] ${id} no video levels found - audio only?`);
+            }
+          });
+
           hls.on(Hls.Events.ERROR, (_, data) => {
             if (data.fatal) {
-              console.error(`[VideoController] Fatal HLS error for ${id}:`, data.type);
+              console.error(`[VideoController] Fatal HLS error for ${id}:`, data.type, data);
               try {
                 hls.stopLoad();
                 hls.detachMedia();

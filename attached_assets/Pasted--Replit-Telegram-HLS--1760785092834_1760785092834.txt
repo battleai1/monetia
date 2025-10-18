@@ -1,0 +1,157 @@
+Похоже, это не Replit/Telegram, а кодеки в твоём HLS: на мобилках звук идёт, а картинка чёрная почти всегда, когда в мастере нет H.264 (avc1), либо плеер случайно выбирает аудио-только уровень. На десктопе всё видно, потому что Chrome/desktop умеет больше кодеков и/или MSE терпимее.
+
+Ниже даю «втыкается-и-работает» патч + быстрый тест, который сразу покажет первопричину и аккуратно чинит выбор уровня.
+
+1) Вставь диагностику уровней и кодеков
+
+Добавь один раз при инициализации Hls:
+
+hls.on(Hls.Events.MANIFEST_PARSED, (_evt, d:any) => {
+  const info = d.levels.map((l:any, i:number) => ({
+    i, w:l.width, h:l.height, v:l.videoCodec, a:l.audioCodec, type:l.attrs?.TYPE
+  }));
+  console.log('[HLS levels]', info);
+});
+
+
+Ожидаем увидеть v: "avc1…" (H.264) и a: "mp4a…" (AAC).
+Если видишь "hvc1…" (HEVC) или "av01…" (AV1) и нет avc1 — это и есть причина «чёрного экрана».
+
+2) Форсируй видеодорожку с avc1 и не давай залипнуть на audio-only
+
+Сразу после MANIFEST_PARSED выбери корректный уровень:
+
+hls.on(Hls.Events.MANIFEST_PARSED, (_evt, d:any) => {
+  // 1) выкинуть чисто аудио-уровни
+  const videoLvls = d.levels
+    .map((lvl:any, i:number) => ({ i, lvl }))
+    .filter(x => (x.lvl.width || x.lvl.height)); // простая проверка «есть видео»
+
+  // 2) среди видео — предпочтить H.264 (avc1)
+  const avc1 = videoLvls.find(x => (x.lvl.videoCodec||'').toLowerCase().includes('avc1'));
+  const pick = avc1 ?? videoLvls[0];
+
+  if (pick) {
+    hls.currentLevel = pick.i;       // сразу зафиксировать уровень
+  } else {
+    console.warn('[HLS] нет видео-уровней — мастер содержит только аудио');
+  }
+});
+
+
+И подстрахуй ошибки, чтобы при фатале не зависал «чёрный»:
+
+hls.on(Hls.Events.ERROR, (_evt, data:any) => {
+  if (data.fatal) {
+    try { hls.destroy(); } catch {}
+    // Мягкий фолбэк: если есть прогрессивный MP4, подставь его здесь
+    // video.src = FALLBACK_MP4_URL;
+    // video.load(); video.play().catch(()=>{});
+  }
+});
+
+3) iOS в Telegram — только нативный HLS
+
+На iOS не используй hls.js, если браузер умеет HLS сам:
+
+const isIOS = /iP(hone|od|ad)/.test(navigator.platform) ||
+              (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+function attachSrc(el: HTMLVideoElement, src: string) {
+  el.setAttribute('playsinline','');
+  el.setAttribute('webkit-playsinline','true');
+  el.playsInline = true;
+  el.muted = true;
+  el.loop = true;
+  el.preload = 'metadata';
+  el.crossOrigin = 'anonymous';
+
+  if (isIOS && el.canPlayType('application/vnd.apple.mpegURL')) {
+    el.src = src; el.load();
+  } else if (window.Hls && (window as any).Hls.isSupported()) {
+    const hls = new (window as any).Hls({
+      lowLatencyMode: true, capLevelToPlayerSize: true, progressive: true, backBufferLength: 30,
+    });
+    hls.attachMedia(el);
+    hls.on((window as any).Hls.Events.MEDIA_ATTACHED, () => { hls.loadSource(src); hls.startLoad(); });
+    // вставь из п.2 MANIFEST_PARSED + ERROR
+  } else {
+    el.src = src; el.load(); // вдруг у тебя MP4
+  }
+}
+
+4) CSS «безопасный режим», чтобы исключить композитинг-баг
+
+На время проверки обязательно:
+
+html, body { height:100%; margin:0; background:#000; }
+.feed-item { height: 100dvh; }
+.reel-card { position:relative; width:100%; height:100%; background:#000; }
+.reel-card *, .reel-card { 
+  /* нигде вокруг видео не должно быть этих вещей: */
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  perspective: none !important;
+}
+/* clip делай не на <video>, а на враппере: */
+.reel-card-inner { position:absolute; inset:0; overflow:hidden; border-radius:16px; }
+.reel-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:#000; }
+
+
+И не скрывай <video> через display:none; используй opacity:0; pointer-events:none.
+
+5) Быстрый стенд для проверки вне твоего фида
+
+Создай debug.html и открой её и в TG WebApp, и в Replit (кнопка “Open in new tab”):
+
+<video id="v" playsinline webkit-playsinline controls autoplay muted
+  style="width:100vw;height:100dvh;object-fit:cover;background:#000" crossorigin="anonymous"></video>
+<script type="module">
+  const src = 'https://YOUR-CDN/master.m3u8';  // тот же URL, что в приложении
+  const v = document.getElementById('v');
+
+  if (v.canPlayType('application/vnd.apple.mpegURL')) { v.src = src; v.load(); v.play().catch(console.warn); }
+  else {
+    const { default: Hls } = await import('https://cdn.jsdelivr.net/npm/hls.js@latest');
+    const hls = new Hls({ lowLatencyMode:true, capLevelToPlayerSize:true, progressive:true });
+    hls.attachMedia(v);
+    hls.on(Hls.Events.MEDIA_ATTACHED, ()=>{ hls.loadSource(src); hls.startLoad(); });
+    hls.on(Hls.Events.MANIFEST_PARSED, (_e, d)=> {
+      console.log('levels', d.levels.map(l=>({w:l.width,h:l.height,v:l.videoCodec,a:l.audioCodec})));
+      const withVideo = d.levels.map((l,i)=>({i,l})).filter(x=>x.l.width||x.l.height);
+      const avc1 = withVideo.find(x=>(x.l.videoCodec||'').toLowerCase().includes('avc1'));
+      hls.currentLevel = (avc1 ?? withVideo[0] ?? {i:-1}).i;
+    });
+  }
+</script>
+
+
+Если тут тоже чёрный экран → почти наверняка в мастере нет avc1 или CDN отдаёт HEVC/AV1. Решение только на упаковке: добавить H.264/AAC-варианты.
+
+Если тут видно, а в твоём фиде — чёрный → тогда возвращай стили (п.4) и проверь, не попадаешь ли на display:none/transform.
+
+6) Если avc1 нет — что делать на сервере
+
+На стороне CDN/пакера добавь профили:
+
+H.264 (avc1): 720p (3–4 Mbps), 480p (1–1.5 Mbps), 360p (600–800 kbps)
+
+AAC (mp4a) для аудио
+
+И убедись, что эти рендишены реально присутствуют в master.m3u8. После этого патч из п.2 выберет корректный уровень на мобилках, и картинка появится в Telegram WebView и в Replit на телефоне.
+
+Маленький чек-лист «после фикса»
+
+ В консоли есть [HLS levels] с v: "avc1..." хотя бы у одного уровня
+
+ При старте не видно display:none на <video>
+
+ У предков <video> нет transform/filter/backdrop-filter/mix-blend-mode
+
+ На iOS используешь нативный HLS (не hls.js)
+
+ Все URL по HTTPS, у <video> стоит crossorigin="anonymous"
+
+Сделай эти правки — и видео должно сразу появиться. Если хочешь, можешь кинуть вывод [HLS levels] одной строкой — я скажу, достаточно ли у тебя avc1, или точно нужен перевыпуск мастера.
