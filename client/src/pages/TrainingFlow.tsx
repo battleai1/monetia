@@ -11,6 +11,18 @@ export default function TrainingFlow() {
   const { startParam } = useTelegram();
   const { data: lessons, isLoading } = useLessons();
   const [showPreloader, setShowPreloader] = useState(true);
+  
+  // КРИТИЧНО: устанавливаем CSS переменную для h-viewport на мобильных
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+    };
+    
+    updateViewportHeight();
+    window.addEventListener('resize', updateViewportHeight);
+    return () => window.removeEventListener('resize', updateViewportHeight);
+  }, []);
 
   // Собираем URLs для предзагрузки
   const videoUrls = useMemo(() => {

@@ -14,6 +14,18 @@ export default function SalesFlow() {
   const { startParam } = useTelegram();
   const { data: salesReels, isLoading } = useSalesReels();
   
+  // КРИТИЧНО: устанавливаем CSS переменную для h-viewport на мобильных
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+    };
+    
+    updateViewportHeight();
+    window.addEventListener('resize', updateViewportHeight);
+    return () => window.removeEventListener('resize', updateViewportHeight);
+  }, []);
+  
   // Собираем URLs для предзагрузки
   const videoUrls = useMemo(() => {
     if (!salesReels) return [];
