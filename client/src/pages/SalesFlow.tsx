@@ -9,7 +9,7 @@ import { useTelegram } from '@/hooks/useTelegram';
 
 export default function SalesFlow() {
   const [, setLocation] = useLocation();
-  const [showCountdown, setShowCountdown] = useState(true);
+  const [showCountdown, setShowCountdown] = useState(false); // ОТКЛЮЧЕН для тестирования
   const [forcePlayFirst, setForcePlayFirst] = useState(false);
   const { startParam } = useTelegram();
   const { data: salesReels, isLoading } = useSalesReels();
