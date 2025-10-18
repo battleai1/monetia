@@ -76,16 +76,6 @@ export default function ReelCard({
     const el = videoRef.current;
     if (!el) return;
     
-    // Принудительно устанавливаем размеры
-    el.style.width = `${window.innerWidth}px`;
-    el.style.height = `${window.innerHeight}px`;
-    console.log(`[ReelCard] Set video dimensions for ${id}:`, {
-      width: el.style.width,
-      height: el.style.height,
-      offsetWidth: el.offsetWidth,
-      offsetHeight: el.offsetHeight
-    });
-    
     videoController.register(el, videoUrl, id);
     return () => videoController.destroy(id);
   }, [id, videoUrl]);
@@ -248,7 +238,7 @@ export default function ReelCard({
         
         <video
           ref={videoRef}
-          className="absolute inset-0 object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
           playsInline
           muted
           preload="metadata"

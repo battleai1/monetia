@@ -74,11 +74,15 @@ class VideoController {
               .map((lvl: any, i: number) => ({ i, lvl }))
               .filter((x: any) => (x.lvl.width || x.lvl.height));
             
-            // 2) Предпочесть H.264 (avc1) для мобильных
-            const avc1Level = videoLevels.find((x: any) => 
+            // 2) Предпочесть H.264 (avc1) с наибольшим разрешением для качества
+            const avc1Levels = videoLevels.filter((x: any) => 
               (x.lvl.videoCodec || '').toLowerCase().includes('avc1')
             );
-            const pick = avc1Level ?? videoLevels[0];
+            
+            // Выбрать наивысшее качество среди avc1 уровней
+            const pick = avc1Levels.length > 0 
+              ? avc1Levels[avc1Levels.length - 1] // последний = наивысшее разрешение
+              : videoLevels[videoLevels.length - 1]; // fallback на последний уровень
             
             if (pick) {
               console.log(`[HLS] ${id} selecting level ${pick.i}:`, pick.lvl.videoCodec, `${pick.lvl.width}x${pick.lvl.height}`);
