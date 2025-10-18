@@ -238,8 +238,13 @@ export default function ReelCard({
         
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ minWidth: '100%', minHeight: '100%' }}
+          className="absolute top-0 left-0 w-screen h-screen object-cover"
+          style={{ 
+            width: '100vw',
+            height: '100vh',
+            maxWidth: '100vw',
+            maxHeight: '100vh'
+          }}
           playsInline
           muted
           preload="metadata"
