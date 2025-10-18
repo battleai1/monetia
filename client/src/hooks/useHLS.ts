@@ -60,6 +60,25 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
       isHLSAttached.current = false;
     };
   }, [videoUrl]); // Только videoUrl в dependencies!
+  
+  // АГРЕССИВНОЕ управление звуком
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    if (!isActive) {
+      // КРИТИЧНО: Полностью заглушаем неактивное видео
+      video.pause();
+      video.muted = true;
+      video.volume = 0;
+      
+      // Сбрасываем на начало чтобы прекратить декодирование
+      video.currentTime = 0;
+    } else {
+      // Активное видео - восстанавливаем громкость
+      video.volume = 1;
+    }
+  }, [isActive]);
 
   return videoRef;
 }

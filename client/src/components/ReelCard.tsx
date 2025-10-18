@@ -61,17 +61,6 @@ export default function ReelCard({
   forcePlay = false,
 }: ReelCardProps) {
   const videoRef = useHLS(videoUrl, isActive, id);
-  
-  // Гарантируем что НЕактивные видео заглушены
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    if (!isActive) {
-      video.muted = true;
-      video.pause();
-    }
-  }, [isActive]);
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
