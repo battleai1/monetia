@@ -1,33 +1,65 @@
-// Custom hook для HLS.js - использует глобальный менеджер
+// Custom hook для HLS.js - простая надёжная версия
 
 import { useEffect, useRef } from 'react';
-import { hlsManager } from '@/lib/hlsManager';
+import Hls from 'hls.js';
 
 export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const isHLSAttached = useRef(false);
 
+  // Создаём HLS ОДИН РАЗ при монтировании
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isHLSAttached.current) return;
 
-    if (isActive) {
-      // Активируем это видео в глобальном менеджере
-      hlsManager.setActiveVideo(video, videoUrl, videoId);
-    } else {
-      // Деактивируем это видео только если оно текущее
-      if (hlsManager.getCurrentVideoId() === videoId) {
-        hlsManager.deactivateVideo(videoId);
-      }
-      
-      // Останавливаем воспроизведение
-      video.pause();
+    const isHLS = videoUrl.includes('.m3u8');
+
+    if (isHLS && Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 90,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+      });
+
+      hls.loadSource(videoUrl);
+      hls.attachMedia(video);
+      hlsRef.current = hls;
+      isHLSAttached.current = true;
+
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              break;
+          }
+        }
+      });
+    } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = videoUrl;
+      isHLSAttached.current = true;
+    } else if (!isHLS) {
+      video.src = videoUrl;
+      isHLSAttached.current = true;
     }
 
-    // Cleanup при unmount
+    // Cleanup только при unmount
     return () => {
-      hlsManager.deactivateVideo(videoId);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      isHLSAttached.current = false;
     };
-  }, [isActive, videoUrl, videoId]);
+  }, [videoUrl]); // Только videoUrl в dependencies!
 
   return videoRef;
 }
