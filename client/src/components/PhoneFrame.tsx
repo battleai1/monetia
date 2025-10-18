@@ -67,6 +67,30 @@ export default function PhoneFrame({ children }: PhoneFrameProps) {
           </div>
         </div>
         
+        {/* Corner masks - hide modal corners outside phone frame */}
+        <div className="fixed inset-0 flex items-center justify-center z-[60] pointer-events-none">
+          <div className="relative" style={{ width: '430px', height: '932px' }}>
+            {/* Bottom left corner mask */}
+            <div 
+              className="absolute bottom-0 left-0 bg-black"
+              style={{
+                width: '48px',
+                height: '48px',
+                borderTopRightRadius: '48px',
+              }}
+            />
+            {/* Bottom right corner mask */}
+            <div 
+              className="absolute bottom-0 right-0 bg-black"
+              style={{
+                width: '48px',
+                height: '48px',
+                borderTopLeftRadius: '48px',
+              }}
+            />
+          </div>
+        </div>
+
         {/* iPhone Frame - rendered AFTER children, higher z-index */}
         <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
           <div className="relative">
