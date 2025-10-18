@@ -13,8 +13,12 @@ class VideoController {
   private activeId: string | null = null;
 
   register(el: HTMLVideoElement, source: string, id: string) {
+    console.log(`[VideoController] Registering ${id}`, { source });
     const prev = this.players.get(id);
-    if (prev?.el === el && prev?.source === source) return;
+    if (prev?.el === el && prev?.source === source) {
+      console.log(`[VideoController] ${id} already registered, skipping`);
+      return;
+    }
 
     if (prev) this.destroy(id);
 
@@ -34,9 +38,11 @@ class VideoController {
         if (signal.aborted) return;
 
         if (el.canPlayType('application/vnd.apple.mpegURL')) {
+          console.log(`[VideoController] ${id} using native HLS`);
           el.src = source;
           if (el.load) await el.load();
         } else if (Hls.isSupported()) {
+          console.log(`[VideoController] ${id} using HLS.js`);
           const hls = new Hls({
             maxBufferLength: 10,
             maxMaxBufferLength: 30,
@@ -77,19 +83,35 @@ class VideoController {
   }
 
   activate(id: string) {
-    if (this.activeId === id) return;
+    console.log(`[VideoController] Activating ${id}`);
+    if (this.activeId === id) {
+      console.log(`[VideoController] ${id} already active`);
+      return;
+    }
     
     this.pauseAll(id);
     this.activeId = id;
     
     const entry = this.players.get(id);
-    if (!entry) return;
+    if (!entry) {
+      console.error(`[VideoController] Cannot activate ${id} - not found`);
+      return;
+    }
+    
+    console.log(`[VideoController] Playing ${id}`, { 
+      readyState: entry.el.readyState,
+      paused: entry.el.paused,
+      muted: entry.el.muted 
+    });
     
     entry.el.muted = false;
-    entry.el.play().catch(() => {
-      entry.el.muted = true;
-      entry.el.play().catch(() => {});
-    });
+    entry.el.play()
+      .then(() => console.log(`[VideoController] ${id} playing successfully`))
+      .catch((err) => {
+        console.warn(`[VideoController] ${id} play failed, retrying muted`, err);
+        entry.el.muted = true;
+        entry.el.play().catch((e) => console.error(`[VideoController] ${id} muted play failed`, e));
+      });
   }
 
   pauseAll(exceptId?: string) {
