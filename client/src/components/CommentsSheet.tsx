@@ -1,6 +1,7 @@
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface Comment {
   id: string;
@@ -50,7 +51,7 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
   
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -197,4 +198,8 @@ export default function CommentsSheet({ isOpen, onClose, comments, commentCount,
       )}
     </AnimatePresence>
   );
+  
+  // Render через портал чтобы выйти из PhoneFrame контейнера
+  if (typeof window === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 }
