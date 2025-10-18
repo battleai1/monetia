@@ -76,9 +76,16 @@ export default function ReelCard({
     const el = videoRef.current;
     if (!el) return;
     
-    // КРИТИЧНО: принудительно устанавливаем размеры ПЕРЕД регистрацией
-    el.style.width = `${window.innerWidth}px`;
-    el.style.height = `${window.innerHeight}px`;
+    // КРИТИЧНО: принудительно устанавливаем размеры с задержками
+    const setSize = () => {
+      el.style.width = `${window.innerWidth}px`;
+      el.style.height = `${window.innerHeight}px`;
+    };
+    
+    setSize(); // Сразу
+    requestAnimationFrame(setSize); // После рендера
+    setTimeout(setSize, 50); // С задержкой 50ms
+    setTimeout(setSize, 100); // С задержкой 100ms
     
     videoController.register(el, videoUrl, id);
     return () => videoController.destroy(id);
@@ -87,6 +94,12 @@ export default function ReelCard({
   // Активация/деактивация видео
   useEffect(() => {
     if (isActive) {
+      // КРИТИЧНО: устанавливаем размеры при активации
+      const el = videoRef.current;
+      if (el) {
+        el.style.width = `${window.innerWidth}px`;
+        el.style.height = `${window.innerHeight}px`;
+      }
       videoController.activate(id);
     }
   }, [isActive, id]);
