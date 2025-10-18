@@ -214,21 +214,7 @@ export default function ReelCard({
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden lg:overflow-visible">
-      <motion.div
-        className="relative w-full h-full origin-top overflow-hidden"
-        animate={showComments ? {
-          scale: 0.57,
-          y: 65,
-          height: '70%',
-          borderRadius: 28,
-        } : {
-          scale: 1,
-          y: 0,
-          height: '100%',
-          borderRadius: 0,
-        }}
-        transition={{ type: 'spring', damping: 35, stiffness: 400 }}
-      >
+      <div className="relative w-full h-full overflow-hidden">
         {posterUrl && (
           <div 
             className="absolute inset-0 w-full h-full bg-cover bg-center"
@@ -301,7 +287,7 @@ export default function ReelCard({
             <FinalCTA text={ctaText} onClick={handleCTAClick} visible={true} />
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       <CommentsSheet
         isOpen={showComments}
