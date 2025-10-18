@@ -16,6 +16,7 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
     const isHLS = videoUrl.includes('.m3u8');
 
     if (isHLS && Hls.isSupported()) {
+      console.log(`[useHLS] Creating HLS instance for ${videoId}`);
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
@@ -53,13 +54,14 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
 
     // Cleanup только при unmount
     return () => {
+      console.log(`[useHLS] Destroying HLS instance for ${videoId}`);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
       isHLSAttached.current = false;
     };
-  }, [videoUrl]); // Только videoUrl в dependencies!
+  }, [videoUrl, videoId]); // Только videoUrl в dependencies!
   
   // АГРЕССИВНОЕ управление звуком
   useEffect(() => {
@@ -67,18 +69,17 @@ export function useHLS(videoUrl: string, isActive: boolean, videoId: string) {
     if (!video) return;
     
     if (!isActive) {
+      console.log(`[useHLS] Muting ${videoId} - PAUSE + MUTE + VOLUME=0`);
       // КРИТИЧНО: Полностью заглушаем неактивное видео
       video.pause();
       video.muted = true;
       video.volume = 0;
-      
-      // Сбрасываем на начало чтобы прекратить декодирование
-      video.currentTime = 0;
     } else {
+      console.log(`[useHLS] Activating ${videoId} - VOLUME=1`);
       // Активное видео - восстанавливаем громкость
       video.volume = 1;
     }
-  }, [isActive]);
+  }, [isActive, videoId]);
 
   return videoRef;
 }
