@@ -1,0 +1,393 @@
+🎯 Цель
+
+Сделать вертикальный видео-фид (в стиле Instagram Reels) в Replit/Telegram WebApp, который:
+
+Всегда рендерит картинку (не «чёрный экран со звуком»),
+
+Проигрывает ровно одно активное видео, без дублирующего звука/гонок,
+
+Поддерживает жесты: долгое удержание слева/центра → пауза/резюм, долгое удержание справа → x2 пока держим,
+
+Работает в iOS/Android Telegram WebView и обычных браузерах (Safari/Chrome/Edge/Firefox),
+
+Не ломается в Replit preview и «в новом табе».
+
+📦 Технологии
+
+Плеер: <video> + нативный HLS на iOS, hls.js на Android/десктоп.
+
+Без video.js и тяжёлых обёрток.
+
+ЯП: TypeScript (или JS, если проект без TS). React — если уже используется.
+
+🧱 Архитектура
+A) Контроллер единственного активного плеера
+
+Реализовать VideoController (singleton):
+
+register(videoEl, hlsUrl, id) — безопасная инициализация (с защитой от гонок, без повторной инициализации).
+
+activate(id) — делает видео активным, ставит паузу на остальные, снимает muted=false только у активного.
+
+pauseAll(exceptId?) — пауза и muted=true всем, кроме exceptId.
+
+destroy(id) — полная очистка: stopLoad/detach/destroy, снятие слушателей, очистка src.
+
+Гарантии: в каждый момент максимум один Hls() на id, повторная регистрация старое уничтожает.
+
+B) Инициализация HLS с «железной» совместимостью
+
+Обязательные атрибуты до присвоения источника:
+
+playsInline, webkit-playsinline, muted=true (до первого жеста), loop=true, preload="metadata", crossorigin="anonymous".
+
+iOS (WKWebView/Safari): если video.canPlayType('application/vnd.apple.mpegURL') → не использовать hls.js, просто video.src = m3u8; video.load();.
+
+Иначе: new Hls({ lowLatencyMode:true, capLevelToPlayerSize:true, progressive:true, backBufferLength:30 }), attachMedia, на MEDIA_ATTACHED → loadSource, startLoad.
+
+На MANIFEST_PARSED:
+
+отбросить audio-only уровни (level.width||level.height),
+
+приоритетно выбрать H.264 (avc1), иначе первый видео-уровень: hls.currentLevel = pick.
+
+На ERROR.fatal → destroy(); (опционально) подставить fallback MP4, если есть.
+
+C) CSS «Safe Mode» (убирает чёрные экраны)
+
+Ни у <video>, ни у его предков не должно быть: transform (включая translateZ(0)), filter, backdrop-filter, mix-blend-mode, perspective, will-change.
+Скругления/клиппинг — не на <video>, а на внутреннем враппере.
+Высоты — через 100dvh, не 100vh.
+Запрещено скрывать <video> через display:none — только opacity:0; pointer-events:none; visibility:hidden.
+
+html, body { height:100%; margin:0; background:#000; }
+.feed { min-height:100dvh; }
+.feed-item { height:100dvh; }
+
+.reel-card { position:relative; width:100%; height:100%; background:#000; }
+.reel-card-inner { position:absolute; inset:0; overflow:hidden; border-radius:16px; }
+
+.reel-video {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; background:#000;
+}
+
+D) Управление видимостью/автовоспроизведением
+
+IntersectionObserver с threshold: [0,0.2,0.6,0.8,1].
+
+Карточка ≥ 60% во вьюпорте → activate(id) и play(). Остальные — pause.
+
+На visibilitychange/pagehide → pauseAll(), кроме режима Replit iframe (см. Dev-исключение ниже).
+
+E) Жесты (Pointer Events)
+
+pointerdown → через setTimeout(180ms) считаем «долгое удержание».
+
+Координата x касания:
+
+x <= 0.66 → toggle пауза/резюм (и activate() при резюме),
+
+x > 0.66 → пока держим: playbackRate = 2.0, при отпускании вернуть 1.0.
+
+Короткий тап (<180ms) — игнор (чтобы не мешать скроллу).
+
+Слушатели вешать на слой-оверлей внутри карточки.
+
+F) Telegram WebApp особенности
+
+Вызвать Telegram.WebApp.ready() и Telegram.WebApp.expand() (если доступно).
+
+iOS в Telegram → всегда нативный HLS (см. B).
+
+Исключить ложные паузы по visibilitychange в TG (иногда WebView репортит «hidden», хотя экран виден).
+
+G) Dev-исключение для Replit preview
+
+Если находимся в iframe Replit → временно не останавливать по visibilitychange; форс-активировать первый ролик через setTimeout(300–400ms) — т.к. IO может не набрать 0.6.
+
+🔐 Сеть и источники
+
+Только HTTPS для m3u8 и сегментов (не допускать Mixed Content).
+
+На CDN включить CORS (Access-Control-Allow-Origin: * или нужный origin).
+
+В master.m3u8 должны быть H.264 (avc1) рендишены (минимум 480p/720p) + AAC (mp4a). Если видны только hvc1/av01 → добавить avc1.
+
+🧩 Файлы и ключевые фрагменты кода
+1) video-controller.ts
+import Hls from 'hls.js';
+
+type Entry = {
+  id: string;
+  el: HTMLVideoElement;
+  hls?: Hls | null;
+  ac?: AbortController;
+  src: string;
+};
+
+const isIOS =
+  /iP(hone|od|ad)/.test(navigator.platform) ||
+  (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+export class VideoController {
+  private players = new Map<string, Entry>();
+  private activeId: string | null = null;
+
+  register(el: HTMLVideoElement, src: string, id: string) {
+    // cleanup if re-registering
+    if (this.players.has(id)) this.destroy(id);
+
+    el.setAttribute('playsinline', '');
+    el.setAttribute('webkit-playsinline', 'true');
+    el.playsInline = true;
+    el.muted = true;
+    el.loop = true;
+    el.preload = 'metadata';
+    el.crossOrigin = 'anonymous';
+
+    const entry: Entry = { id, el, src, hls: null, ac: new AbortController() };
+    this.players.set(id, entry);
+
+    const { signal } = entry.ac!;
+    (async () => {
+      try {
+        if (signal.aborted) return;
+
+        if (isIOS && el.canPlayType('application/vnd.apple.mpegURL')) {
+          el.src = src; el.load();
+        } else if (Hls.isSupported()) {
+          const hls = new Hls({ lowLatencyMode:true, capLevelToPlayerSize:true, progressive:true, backBufferLength:30 });
+          entry.hls = hls;
+          hls.attachMedia(el);
+          hls.on(Hls.Events.MEDIA_ATTACHED, () => { hls.loadSource(src); hls.startLoad(); });
+          hls.on(Hls.Events.MANIFEST_PARSED, (_evt, d:any) => {
+            const videoLvls = d.levels.map((lvl:any,i:number)=>({i,lvl}))
+              .filter((x:any)=>x.lvl.width||x.lvl.height);
+            const avc1 = videoLvls.find((x:any)=>(x.lvl.videoCodec||'').toLowerCase().includes('avc1'));
+            const pick = (avc1 ?? videoLvls[0]);
+            if (pick) hls.currentLevel = pick.i;
+          });
+          hls.on(Hls.Events.ERROR, (_evt, data:any) => {
+            if (data.fatal) { try { hls.destroy(); } catch {} entry.hls = null; }
+          });
+        } else {
+          el.src = src; el.load(); // fallback (mp4, если дан)
+        }
+      } catch {}
+    })();
+  }
+
+  activate(id: string) {
+    if (this.activeId === id) return;
+    this.pauseAll(id);
+    this.activeId = id;
+    const e = this.players.get(id);
+    if (!e) return;
+    e.el.muted = false;
+    e.el.play().catch(()=>{});
+  }
+
+  pauseAll(exceptId?: string) {
+    for (const [pid, e] of this.players) {
+      if (exceptId && pid === exceptId) continue;
+      try { e.el.playbackRate = 1.0; e.el.pause(); e.el.muted = true; } catch {}
+    }
+  }
+
+  destroy(id: string) {
+    const e = this.players.get(id);
+    if (!e) return;
+    e.ac?.abort();
+    try { e.hls?.stopLoad(); e.hls?.detachMedia(); e.hls?.destroy(); } catch {}
+    try { e.el.removeAttribute('src'); e.el.load(); } catch {}
+    this.players.delete(id);
+    if (this.activeId === id) this.activeId = null;
+  }
+}
+
+export const videoController = new VideoController();
+
+2) Компонент карточки (React) ReelCard.tsx
+import { useEffect, useRef } from 'react';
+import { videoController } from './video-controller';
+
+export default function ReelCard({ id, hlsUrl }: {id:string; hlsUrl:string}) {
+  const vRef = useRef<HTMLVideoElement>(null);
+  const holdTimer = useRef<number | null>(null);
+  const holdingRight = useRef(false);
+
+  useEffect(() => {
+    const v = vRef.current!;
+    videoController.register(v, hlsUrl, id);
+    return () => videoController.destroy(id);
+  }, [id, hlsUrl]);
+
+  useEffect(() => {
+    const v = vRef.current!;
+    const onDown = (e: PointerEvent) => {
+      const rect = v.getBoundingClientRect();
+      const xf = (e.clientX - rect.left) / rect.width;
+      const t = window.setTimeout(() => {
+        if (xf > 0.66) {
+          holdingRight.current = true;
+          videoController.activate(id);
+          v.playbackRate = 2.0;
+          v.play().catch(()=>{});
+        } else {
+          if (v.paused) videoController.activate(id); else v.pause();
+        }
+      }, 180);
+      holdTimer.current = t as unknown as number;
+
+      const stop = () => {
+        if (holdTimer.current) { clearTimeout(holdTimer.current); holdTimer.current = null; }
+        if (holdingRight.current) { holdingRight.current = false; v.playbackRate = 1.0; }
+        window.removeEventListener('pointerup', stop);
+        window.removeEventListener('pointercancel', stop);
+      };
+      window.addEventListener('pointerup', stop, { passive: true });
+      window.addEventListener('pointercancel', stop, { passive: true });
+    };
+    v.addEventListener('pointerdown', onDown, { passive: false });
+    return () => v.removeEventListener('pointerdown', onDown);
+  }, [id]);
+
+  return (
+    <div className="reel-card">
+      <div className="reel-card-inner">
+        <video
+          ref={vRef}
+          className="reel-video"
+          playsInline
+          webkit-playsinline="true"
+          muted
+          loop
+          preload="metadata"
+          crossOrigin="anonymous"
+        />
+      </div>
+    </div>
+  );
+}
+
+3) Фид + IntersectionObserver ReelFeed.tsx
+import { useEffect, useRef } from 'react';
+import { videoController } from './video-controller';
+
+const inIframe = window.top !== window.self;
+const isReplit = /replit/i.test(location.hostname) || /replit/i.test(document.referrer);
+const isTelegram = /Telegram/i.test(navigator.userAgent) || (window as any).Telegram?.WebApp;
+
+export default function ReelFeed({ items }:{items:{id:string; url:string}[]}) {
+  const cards = useRef<Map<string, HTMLElement>>(new Map());
+
+  useEffect(() => {
+    try { (window as any).Telegram?.WebApp?.ready?.(); (window as any).Telegram?.WebApp?.expand?.(); } catch {}
+
+    const io = new IntersectionObserver((entries) => {
+      let best: {id:string; ratio:number} | null = null;
+      for (const e of entries) {
+        const id = (e.target as HTMLElement).dataset['id']!;
+        if (e.isIntersecting) {
+          if (!best || e.intersectionRatio > best.ratio) best = { id, ratio: e.intersectionRatio };
+        }
+      }
+      if (best && best.ratio >= 0.6) videoController.activate(best.id);
+    }, { threshold: [0,0.2,0.6,0.8,1] });
+
+    for (const [, el] of cards.current) io.observe(el);
+
+    // Не стопаем в TG и Replit-iframe (ложные hidden)
+    if (!isTelegram && !(inIframe && isReplit)) {
+      const onVis = () => { if (document.visibilityState !== 'visible') videoController.pauseAll(); };
+      document.addEventListener('visibilitychange', onVis);
+      window.addEventListener('pagehide', () => videoController.pauseAll());
+      return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis); };
+    } else {
+      // Dev: форс-активация 1-го ролика
+      setTimeout(() => { if (items[0]) videoController.activate(items[0].id); }, 400);
+      return () => { io.disconnect(); };
+    }
+  }, [items]);
+
+  return (
+    <div className="feed">
+      {items.map(it => (
+        <div
+          key={it.id}
+          data-id={it.id}
+          ref={el => { if (el) cards.current.set(it.id, el); else cards.current.delete(it.id); }}
+          className="feed-item"
+        >
+          {/* ReelCard импортируй и прокинь hlsUrl=it.url */}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+✅ Критерии приёмки
+
+Картинка есть на всех устройствах:
+
+iOS Safari/Telegram WebApp: видео рендерится (видно движение), без фуллскрина, playsinline работает.
+
+Android Chrome/Telegram WebApp: видео рендерится, нет «чёрного экрана со звуком».
+
+Нет двойного звука: при быстром скролле активен один плеер; фонового «подпевающего» звука нет.
+
+Нет гонок: повторная регистрация/смена src не создаёт лишние инстансы Hls; ресурсы очищаются.
+
+Жесты: удержание слева/центра ≥180ms — пауза/резюм; справа — x2 на время удержания.
+
+Автовоспроизведение: карточка ≥60% — играет, другие — стоят на паузе. Свернули вкладку (кроме TG/iframe Replit dev) — всё на паузе.
+
+CSS-безопасность: нигде рядом с <video> нет transform/filter/backdrop-filter/mix-blend-mode/perspective на время рендера.
+
+Кодеки: хотя бы один уровень в MANIFEST с videoCodec = avc1*, audioCodec = mp4a*. При отсутствии — зафиксирована задача на CDN.
+
+🔍 Диагностика (встроить один раз, отключить после)
+
+В register логировать уровни:
+
+hls.on(Hls.Events.MANIFEST_PARSED, (_e, d:any) => {
+  console.log('[levels]', d.levels.map((l:any)=>({w:l.width,h:l.height,v:l.videoCodec,a:l.audioCodec})));
+});
+
+
+Если нет avc1 — это задача на серверной упаковке (добавить H.264/AAC рендишены).
+
+🧪 Мини-тест-план
+
+iOS Telegram WebApp + Safari: открыть, увидеть картинку, жесты работают.
+
+Android Telegram WebApp + Chrome: то же.
+
+Быстрый скролл 20+ карточек: нет фантомного звука.
+
+Replit: во вкладке “Open in new tab” и в мобильном девайсе — картинка видна; в встроенном iframe допускаются dev-исключения из раздела G.
+
+🚫 Что запрещено
+
+display:none на <video> при скрытии.
+
+transform/filter/backdrop-filter/mix-blend-mode/perspective на <video> и его предках.
+
+Использовать hls.js на iOS, когда доступен нативный HLS.
+
+Параллельная инициализация нескольких Hls() для одного id.
+
+📄 Что сгенерировать
+
+video-controller.ts (как выше).
+
+ReelCard.tsx (жесты + безопасные атрибуты).
+
+ReelFeed.tsx (IO + исключения TG/Replit).
+
+styles.css (safe-mode блок).
+
+Опционально debug.html с одним <video> и тем же m3u8 для быстрой проверки кодеков (видимость картинки = ок).
+
+Сделай код строго по этому ТЗ. Затем прогони тест-план. Если [levels] не показывает avc1 — сообщи, что требуется добавить H.264/AAC в мастер на CDN.

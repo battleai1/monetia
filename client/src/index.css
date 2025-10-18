@@ -2,6 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== CSS SAFE MODE для видео (убирает черные экраны) ===== */
+/* КРИТИЧНО: НЕ использовать transform/filter/backdrop-filter на video или его предках */
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #000;
+}
+
+.feed {
+  min-height: 100dvh;
+}
+
+.feed-item {
+  height: 100dvh;
+}
+
+/* Базовая карточка - wrapper без transform */
+.reel-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+/* Inner wrapper - для border-radius, overflow, НО без transform */
+.reel-card-inner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* Состояние с открытыми комментариями - БЕЗ transform! */
+.reel-card-inner-comments {
+  position: absolute;
+  top: 65px;
+  left: 0;
+  right: 0;
+  bottom: 30%;
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+/* Видео элемент - ЗАПРЕЩЕНО: transform, filter, backdrop-filter, mix-blend-mode, perspective, will-change */
+.reel-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+/* Hide scrollbar но сохранить функциональность scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);

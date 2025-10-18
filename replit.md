@@ -31,24 +31,36 @@ NeurotRaffic is a Telegram WebApp designed to deliver educational content and sa
 - ✅ Requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHANNEL_ID` environment secrets
 - ✅ Bot must be admin in target channel to auto-approve join requests
 
-### Video Playback Architecture Rewrite (October 18, 2025)
-- ✅ **Complete architecture rewrite** to eliminate audio duplication and HLS race conditions
-- ✅ **Singleton VideoController** pattern - ensures ONLY ONE active video at any time
-  - Global controller manages all video players via `register()`, `activate()`, `pauseAll()`, `destroy()`
-  - Automatic HLS initialization with AbortController for race condition prevention
-  - Safari native HLS fallback when `canPlayType('application/vnd.apple.mpegURL')` supported
-  - Fatal error recovery with automatic cleanup
-- ✅ **Gesture-based controls** (Instagram Reels style):
-  - Long press (180ms) on left/center → pause/resume toggle
-  - Long press on right (>66% width) → 2x speed while holding
-  - Automatic return to 1x speed on release
-  - Pointer events with proper cleanup to avoid memory leaks
-- ✅ **Smart activation**:
-  - All inactive videos are muted, paused, and have playbackRate=1.0
-  - Only active video unmutes and plays
-  - Seamless activation via `videoController.activate(id)`
-- ✅ **Future-ready for IntersectionObserver**: Architecture supports auto-activation based on viewport visibility
-- ✅ Performance: Zero duplicate HLS instances, no audio bleeding between videos
+### Video System Complete Rebuild (October 18, 2025) - CSS Safe Mode Edition
+- ✅ **VideoController Rewrite** - strict TZ compliance:
+  - iOS detection: `/iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document)`
+  - Native HLS for iOS (`video.canPlayType('application/vnd.apple.mpegURL')`), hls.js for Android/desktop
+  - MANIFEST_PARSED: filters audio-only levels, selects HIGHEST avc1 level (e.g., 720x1280 instead of 198x352)
+  - AbortController prevents race conditions, proper cleanup: stopLoad, detachMedia, destroy
+  - Singleton pattern: only ONE Hls() instance per video ID
+- ✅ **ReelCard Simplified** - removed black screen risks:
+  - Removed motion.div transform (violates CSS Safe Mode!)
+  - Removed poster (can cause rendering issues)
+  - Pointer events gestures (180ms threshold):
+    * x <= 0.66 → toggle pause/resume
+    * x > 0.66 → playbackRate 2.0 while holding
+  - No longer syncs with isMuted store (VideoController manages muted state)
+- ✅ **CSS Safe Mode** - eliminates mobile black screens:
+  - NO transform/filter/backdrop-filter/mix-blend-mode/perspective on video or ancestors
+  - Border-radius on inner wrapper, not video element
+  - Uses `top` offset instead of `transform: translateY` for positioning
+  - 100dvh viewport height for proper mobile display
+- ✅ **IntersectionObserver** - auto-activation at 60% visibility:
+  - threshold: [0, 0.2, 0.6, 0.8, 1]
+  - Observes/unobserves dynamically in ref callback (supports newly mounted reels)
+  - Activates video when ≥60% visible in viewport
+- ✅ **Telegram WebApp Integration**:
+  - Calls Telegram.WebApp.ready() and expand() on mount
+  - Excludes visibilitychange pausing in Telegram (avoids false "hidden" events)
+- ✅ **Replit Dev Exception**:
+  - Force-activates first reel after 400ms in iframe (IntersectionObserver may not trigger at 60% in preview)
+  - Ignores visibilitychange in Replit iframe
+- ✅ Performance: Highest quality HLS (avc1 codec), zero duplicate audio, CSS-safe rendering
 
 ## User Preferences
 

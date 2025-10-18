@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppStore } from '@/store/app.store';
 import { videoController } from '@/lib/video-controller';
 import FloatingActions from './FloatingActions';
 import FinalCTA from './FinalCTA';
@@ -63,82 +62,66 @@ export default function ReelCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const holdTimer = useRef<number | null>(null);
   const holdingRight = useRef(false);
-  const holdingPause = useRef(false);
   
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
   const [hasLoggedView, setHasLoggedView] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const { isMuted } = useAppStore();
 
   // Регистрация видео в VideoController
   useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
+    const v = videoRef.current;
+    if (!v) return;
     
-    videoController.register(el, videoUrl, id);
+    videoController.register(v, videoUrl, id);
     return () => videoController.destroy(id);
   }, [id, videoUrl]);
 
-  // Активация/деактивация видео
+  // Активация/деактивация видео через IntersectionObserver (будет добавлено в ReelsViewport)
   useEffect(() => {
     if (isActive) {
       videoController.activate(id);
     }
   }, [isActive, id]);
 
-  // Синхронизация mute state с глобальным store
+  // Жесты: pointer events с 180ms таймером
   useEffect(() => {
-    const el = videoRef.current;
-    if (!el || !isActive) return;
-    
-    el.muted = isMuted;
-  }, [isMuted, isActive]);
+    const v = videoRef.current;
+    if (!v) return;
 
-  // Жесты: долгое нажатие для паузы/ускорения
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-
-    const onPointerDown = (e: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
-      const xFrac = (e.clientX - rect.left) / rect.width;
-
-      const timer = window.setTimeout(() => {
-        if (xFrac > 0.66) {
-          // Правая часть - ускорение x2
+    const onDown = (e: PointerEvent) => {
+      const rect = v.getBoundingClientRect();
+      const xf = (e.clientX - rect.left) / rect.width;
+      
+      const t = window.setTimeout(() => {
+        if (xf > 0.66) {
+          // Правая часть - ускорение x2 пока держим
           holdingRight.current = true;
           videoController.activate(id);
-          el.playbackRate = 2.0;
-          el.play().catch(() => {});
+          v.playbackRate = 2.0;
+          v.play().catch(() => {});
         } else {
-          // Левая/центр - пауза (возобновится при отпускании)
-          holdingPause.current = true;
-          el.pause();
+          // Левая/центр - toggle пауза/резюм
+          if (v.paused) {
+            videoController.activate(id);
+          } else {
+            v.pause();
+          }
         }
       }, 180);
       
-      holdTimer.current = timer;
+      holdTimer.current = t as unknown as number;
 
       const stop = () => {
         if (holdTimer.current) {
           clearTimeout(holdTimer.current);
           holdTimer.current = null;
         }
-        
-        // Возобновляем после ускорения
+        // Возвращаем playbackRate после удержания справа
         if (holdingRight.current) {
           holdingRight.current = false;
-          el.playbackRate = 1.0;
+          v.playbackRate = 1.0;
         }
-        
-        // Возобновляем после паузы
-        if (holdingPause.current) {
-          holdingPause.current = false;
-          videoController.activate(id);
-          el.play().catch(() => {});
-        }
-        
         window.removeEventListener('pointerup', stop);
         window.removeEventListener('pointercancel', stop);
       };
@@ -147,8 +130,8 @@ export default function ReelCard({
       window.addEventListener('pointercancel', stop, { passive: true });
     };
 
-    el.addEventListener('pointerdown', onPointerDown, { passive: false });
-    return () => el.removeEventListener('pointerdown', onPointerDown);
+    v.addEventListener('pointerdown', onDown, { passive: false });
+    return () => v.removeEventListener('pointerdown', onDown);
   }, [id]);
 
   // Отслеживание прогресса видео
@@ -213,35 +196,19 @@ export default function ReelCard({
   };
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden lg:overflow-visible">
-      <motion.div
-        className="relative w-full h-full origin-top overflow-hidden"
-        animate={showComments ? {
-          scale: 0.57,
-          y: 65,
-          height: '70%',
-          borderRadius: 28,
-        } : {
-          scale: 1,
-          y: 0,
-          height: '100%',
-          borderRadius: 0,
-        }}
-        transition={{ type: 'spring', damping: 35, stiffness: 400 }}
+    <div className="reel-card">
+      <div 
+        className={showComments ? "reel-card-inner-comments" : "reel-card-inner"}
+        data-testid={`reel-card-${id}`}
       >
-        {posterUrl && (
-          <div 
-            className="absolute inset-0 w-full h-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${posterUrl})` }}
-          />
-        )}
-        
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="reel-video"
           playsInline
           muted
+          loop
           preload="metadata"
+          crossOrigin="anonymous"
           webkit-playsinline="true"
           data-testid={`video-${id}`}
         />
@@ -294,7 +261,7 @@ export default function ReelCard({
             <FinalCTA text={ctaText} onClick={handleCTAClick} visible={true} />
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       <CommentsSheet
         isOpen={showComments}
