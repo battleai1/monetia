@@ -63,6 +63,7 @@ export default function ReelCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const holdTimer = useRef<number | null>(null);
   const holdingRight = useRef(false);
+  const holdingPause = useRef(false);
   
   const [showHook, setShowHook] = useState(true);
   const [showCTA, setShowCTA] = useState(false);
@@ -111,12 +112,9 @@ export default function ReelCard({
           el.playbackRate = 2.0;
           el.play().catch(() => {});
         } else {
-          // Левая/центр - toggle pause/resume
-          if (el.paused) {
-            videoController.activate(id);
-          } else {
-            el.pause();
-          }
+          // Левая/центр - пауза (возобновится при отпускании)
+          holdingPause.current = true;
+          el.pause();
         }
       }, 180);
       
@@ -127,10 +125,20 @@ export default function ReelCard({
           clearTimeout(holdTimer.current);
           holdTimer.current = null;
         }
+        
+        // Возобновляем после ускорения
         if (holdingRight.current) {
           holdingRight.current = false;
           el.playbackRate = 1.0;
         }
+        
+        // Возобновляем после паузы
+        if (holdingPause.current) {
+          holdingPause.current = false;
+          videoController.activate(id);
+          el.play().catch(() => {});
+        }
+        
         window.removeEventListener('pointerup', stop);
         window.removeEventListener('pointercancel', stop);
       };
